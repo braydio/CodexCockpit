@@ -19,7 +19,9 @@
           <option value="thought">thought</option>
           <option value="tool">tool</option>
           <option value="diff">diff</option>
+          <option value="status">status</option>
           <option value="final">final</option>
+          <option value="cancelled">cancelled</option>
           <option value="error">error</option>
         </select>
       </div>
@@ -225,4 +227,3 @@ onUpdated(async () => {
 }
 .muted { color: var(--muted); }
 </style>
-

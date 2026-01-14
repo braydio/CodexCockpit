@@ -14,6 +14,13 @@ class ModelSpec:
     tools: bool
 
 MODEL_REGISTRY = {
+    "codex-remote": ModelSpec(
+        name="codex-remote",
+        runtime="codex",
+        endpoint=None,
+        context=128000,
+        tools=True,
+    ),
     "codex-default": ModelSpec(
         name="codex-default",
         runtime="codex",

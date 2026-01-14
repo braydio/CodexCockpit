@@ -3,11 +3,12 @@
 
 cd backend
 python -m venv .venv
-.venv/bin/activate
+. .venv/bin/activate
 pip install -r requirements.txt
 ./run.sh
 
-# Start the GUI
+# Start the desktop UI (Vite)
 ---
-cd gui
-python -m http.server 8080
+cd codex-cockpit-desktop
+npm install
+npm run dev

@@ -54,7 +54,7 @@
       </div>
 
       <div class="small muted">
-        Stop(Local) only closes the stream. Add a backend stop endpoint later if desired.
+        Stop(Local) only closes the stream. Backend stop is available at `POST /sessions/{id}/stop`.
       </div>
     </div>
 
@@ -160,4 +160,3 @@ function clearEvents() { emit("clearEvents"); }
 
 .muted { color: var(--muted); }
 </style>
-

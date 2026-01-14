@@ -48,7 +48,7 @@ No GUI feature may assume Codex implementation details.
 ### 4. Event-First Communication
 
 * Codex outputs **structured events**, not raw text blobs.
-* Events are typed (e.g. `plan`, `tool`, `diff`, `final`, `error`).
+* Events are typed (e.g. `plan`, `tool`, `diff`, `thought`, `status`, `final`, `cancelled`, `error`).
 * The GUI renders events; it does not interpret model intent.
 
 Free-form text is allowed only as event payloads, never as protocol.
@@ -164,4 +164,3 @@ Design as if the migration is inevitable.
 * Chat-style UX is insufficient for this system.
 
 This is an execution cockpit, not a chatbot.
-

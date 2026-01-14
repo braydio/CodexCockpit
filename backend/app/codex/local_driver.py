@@ -23,6 +23,7 @@ class LocalModelDriver(CodexDriver):
         self.model = model
         self.adapter = adapter
         self.queues = {}
+        self.tasks = {}
 
     async def start_session(self, session_id: str, config: dict) -> None:
         """Start a streaming Codex session for a local model via the adapter.
@@ -60,7 +61,7 @@ class LocalModelDriver(CodexDriver):
                     "content": str(exc)
                 })
 
-        asyncio.create_task(run())
+        self.tasks[session_id] = asyncio.create_task(run())
 
     async def send(self, session_id: str, message: str) -> None:
         """Send interactive input to an existing session."""
@@ -76,7 +77,7 @@ class LocalModelDriver(CodexDriver):
         while True:
             event = await queue.get()
             yield event
-            if event["type"] in ("final", "error"):
+            if event["type"] in ("final", "cancelled", "error"):
                 break
 
     async def stop_session(self, session_id: str) -> None:

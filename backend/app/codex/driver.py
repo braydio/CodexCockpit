@@ -7,7 +7,7 @@ class CodexEvent(Dict[str, Any]):
     """
     Example:
     {
-      "type": "plan" | "tool" | "diff" | "final" | "error",
+      "type": "plan" | "tool" | "diff" | "thought" | "status" | "final" | "cancelled" | "error",
       "content": str,
       "meta": dict (optional)
     }

@@ -16,7 +16,7 @@ class CodexSDKDriver(CodexDriver):
     def __init__(self):
         """Initialize the SDK driver and its session state."""
         self.client = AsyncOpenAI()
-        self.sessions = {}
+        self.tasks = {}
         self.queues = {}
 
     async def start_session(self, session_id: str, config: dict) -> None:
@@ -74,7 +74,7 @@ class CodexSDKDriver(CodexDriver):
                     "content": str(exc)
                 })
 
-        self.sessions[session_id] = asyncio.create_task(run())
+        self.tasks[session_id] = asyncio.create_task(run())
 
     async def send(self, session_id: str, message: str) -> None:
         """Send interactive input to an existing session."""
@@ -91,7 +91,7 @@ class CodexSDKDriver(CodexDriver):
         while True:
             event = await queue.get()
             yield event
-            if event["type"] in ("final", "error"):
+            if event["type"] in ("final", "cancelled", "error"):
                 break
 
     async def stop_session(self, session_id: str) -> None:

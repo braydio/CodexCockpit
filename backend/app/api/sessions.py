@@ -1,9 +1,10 @@
 # backend/app/api/sessions.py
 from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
 import uuid
 
-from app.codex.session import create as codex_create, get_config
+from app.codex.session import get_config, get_status, register, stop
 
 router = APIRouter()
 
@@ -18,18 +19,22 @@ async def create_session(req: CreateSessionRequest):
 
     config = {
         "goal": req.goal,
-        "model": req.model or "default",
+        "model": req.model or "codex-default",
         "workspace": req.workspace or ".",
     }
 
-    # This is the missing piece: register + start session in the driver
-    await codex_create(session_id, config)
+    try:
+        await register(session_id, config)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     return {
         "session_id": session_id,
         "goal": req.goal,
         "model": config["model"],
-        "status": "created",
+        "status": get_status(session_id),
     }
 
 @router.get("/{session_id}")
@@ -37,5 +42,12 @@ def get_session(session_id: str):
     cfg = get_config(session_id)
     if not cfg:
         return {"error": "Session not found"}
-    return {"session_id": session_id, "config": cfg}
+    return {"session_id": session_id, "config": cfg, "status": get_status(session_id)}
 
+
+@router.post("/{session_id}/stop")
+async def stop_session(session_id: str):
+    if not get_config(session_id):
+        return {"error": "Session not found"}
+    await stop(session_id)
+    return {"session_id": session_id, "status": get_status(session_id)}
