@@ -3,6 +3,7 @@ from app.codex.model_adapters import ModelAdapter, OllamaAdapter
 from app.codex.models import MODEL_REGISTRY, ModelSpec
 from app.codex.codex_sdk import CodexSDKDriver
 from app.codex.local_driver import LocalModelDriver
+from app.codex.ollama_driver import OllamaDriver
 
 
 def _build_adapter(spec: ModelSpec) -> ModelAdapter:
@@ -28,5 +29,8 @@ def get_driver(model_name: str):
     if spec.runtime == "local":
         adapter = _build_adapter(spec)
         return LocalModelDriver(spec, adapter)
+
+    if spec.runtime == "ollama":
+        return OllamaDriver(spec)
 
     raise ValueError("Invalid model runtime")

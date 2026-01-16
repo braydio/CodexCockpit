@@ -5,7 +5,7 @@ class ModelSpec:
     """Describes a selectable model and its runtime configuration."""
 
     name: str
-    runtime: str        # "codex" | "local"
+    runtime: str        # "codex" | "local" | "ollama"
     endpoint: str | None
     adapter: str | None
     executable_path: str | None
@@ -38,6 +38,13 @@ MODEL_REGISTRY = {
         adapter="ollama",
         executable_path="/usr/local/bin/ollama",
         timeout_s=120,
+        context=32768,
+        tools=False,
+    ),
+    "qwen2.5": ModelSpec(
+        name="qwen2.5",
+        runtime="ollama",
+        endpoint="http://localhost:11434",
         context=32768,
         tools=False,
     ),
