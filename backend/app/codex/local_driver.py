@@ -2,33 +2,30 @@ import asyncio
 import logging
 from typing import AsyncIterator
 
-from openai import AsyncOpenAI
-
 from app.codex.context_assembler import ContextAssembler
 from app.codex.driver import CodexDriver, CodexEvent
+from app.codex.model_adapters import ModelAdapter
 from app.codex.models import ModelSpec
 
 LOGGER = logging.getLogger(__name__)
 
 
 class LocalModelDriver(CodexDriver):
-    """Driver for local model endpoints that emulate the OpenAI API."""
+    """Driver for local model adapters that produce Codex-style output."""
 
-    def __init__(self, model: ModelSpec):
-        """Initialize the local driver with a model specification.
+    def __init__(self, model: ModelSpec, adapter: ModelAdapter):
+        """Initialize the local driver with a model specification and adapter.
 
         Args:
-            model: Model metadata including endpoint and name.
+            model: Model metadata including runtime and name.
+            adapter: Adapter responsible for invoking the local model.
         """
         self.model = model
-        self.client = AsyncOpenAI(
-            base_url=model.endpoint,
-            api_key="local-model"  # ignored but required
-        )
+        self.adapter = adapter
         self.queues = {}
 
     async def start_session(self, session_id: str, config: dict) -> None:
-        """Start a streaming Codex session for a local model.
+        """Start a streaming Codex session for a local model via the adapter.
 
         Args:
             session_id: Unique identifier for the session.
@@ -44,21 +41,12 @@ class LocalModelDriver(CodexDriver):
                 workspace = config.get("workspace", ".")
                 prompt = self._build_prompt(config["goal"], workspace, context)
 
-                resp = await self.client.chat.completions.create(
-                    model=self.model.name,
-                    messages=[
-                        {"role": "user", "content": prompt}
-                    ],
-                    stream=True,
-                )
-
-                async for chunk in resp:
-                    delta = chunk.choices[0].delta.content
-                    if delta:
-                        await queue.put({
-                            "type": "thought",
-                            "content": delta
-                        })
+                response = await asyncio.to_thread(self.adapter.generate, prompt)
+                if response:
+                    await queue.put({
+                        "type": "thought",
+                        "content": response
+                    })
 
                 await queue.put({
                     "type": "final",
