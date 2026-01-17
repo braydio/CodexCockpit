@@ -10,6 +10,13 @@ session workspace. The assembly step summarizes source files and extracts
 keyword-matched snippets before building the prompt. See
 [`docs/context-assembly.md`](docs/context-assembly.md) for details.
 
+## Model Adapters
+
+Local model runs use explicit adapter classes that wrap the chosen runtime
+binary (for example Ollama). Configuration lives in
+`backend/app/codex/models.py`, and documentation is available in
+[`docs/model-adapters.md`](docs/model-adapters.md).
+
 ## Tests
 
 Backend unit tests can be run with:
