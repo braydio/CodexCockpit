@@ -1,7 +1,6 @@
-
 <template>
-  <section class="wrap">
-    <div class="header">
+  <section class="wrap panel secondary">
+    <div class="header panel-header">
       <div class="left">
         <div class="title">File Viewer</div>
         <div class="small muted">Click a file in the tree to open</div>
@@ -12,13 +11,17 @@
           <span class="dot"></span>
           {{ filePath }}
         </span>
-        <button class="btn" @click="reload" :disabled="!filePath || loading">Reload</button>
+        <button class="btn" @click="reload" :disabled="!filePath || loading">
+          Reload
+        </button>
       </div>
     </div>
 
-    <div class="meta" v-if="fileInfo">
+    <div class="meta panel-subheader" v-if="fileInfo">
       <div class="mono small">
         <span class="muted">size:</span> {{ fileInfo.size }} bytes
+        <span class="muted"> • </span>
+        <span class="muted">lines:</span> {{ lineCount }}
         <span class="muted"> • </span>
         <span class="muted">abs:</span> {{ fileInfo.abs_path }}
       </div>
@@ -27,16 +30,22 @@
       </div>
     </div>
 
-    <div class="body">
+    <div class="body panel-body">
       <div v-if="error" class="errorBox mono">{{ error }}</div>
       <div v-else-if="loading" class="loading muted">Loading file…</div>
+      <div v-else-if="!filePath" class="emptyState">
+        <div class="emptyTitle mono">No file selected</div>
+        <div class="small muted">
+          Select a file in the workspace tree to preview its contents.
+        </div>
+      </div>
       <pre v-else class="content mono">{{ fileInfo?.text || placeholder }}</pre>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import type { WorkspaceFileResponse } from "@/lib/workspaceApi";
 import { fetchWorkspaceFile } from "@/lib/workspaceApi";
 
@@ -50,6 +59,18 @@ const loading = ref(false);
 const error = ref("");
 
 const placeholder = "No file selected.";
+
+/**
+ * Count the number of lines in the file contents for display metadata.
+ */
+function countLines(text?: string | null): number {
+  if (!text) return 0;
+  return text.split(/\r?\n/).length;
+}
+
+const lineCount = computed(() => countLines(fileInfo.value?.text));
+
+// TODO: Add component tests for empty state and metadata rendering when a UI test harness is available.
 
 async function reload() {
   error.value = "";
@@ -77,7 +98,7 @@ watch(
   async () => {
     await reload();
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 
@@ -86,16 +107,10 @@ watch(
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   overflow: hidden;
 }
 
 .header {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -107,9 +122,6 @@ watch(
 }
 
 .meta {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -119,7 +131,6 @@ watch(
 .body {
   flex: 1;
   overflow: auto;
-  padding: 12px;
 }
 
 .content {
@@ -128,6 +139,21 @@ watch(
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.emptyState {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.emptyTitle {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .errorBox {
@@ -143,13 +169,5 @@ watch(
 
 .warn {
   color: var(--warn);
-}
-
-.muted {
-  color: var(--muted);
-}
-
-.small {
-  font-size: 12px;
 }
 </style>

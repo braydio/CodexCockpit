@@ -25,3 +25,9 @@ Backend unit tests can be run with:
 cd backend
 python -m unittest discover
 ```
+
+## UI Theme
+
+The desktop UI ships with a terminal-inspired theme system that supports
+dark/light modes and reusable layout utilities. See
+[`docs/ui-theme.md`](docs/ui-theme.md) for the full token and utility catalog.

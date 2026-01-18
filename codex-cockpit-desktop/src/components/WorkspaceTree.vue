@@ -1,6 +1,6 @@
 <template>
-  <section class="wrap">
-    <div class="header">
+  <section class="wrap panel secondary">
+    <div class="header panel-header">
       <div class="left">
         <div class="title">Workspace</div>
         <div class="small muted">Browse server workspace files</div>
@@ -15,10 +15,16 @@
           <option :value="6">depth 6</option>
           <option :value="8">depth 8</option>
         </select>
+        <div v-if="selectedPath" class="selectedInfo">
+          <span class="badge info">selected</span>
+          <span class="selectedPill mono" :title="selectedPath">
+            {{ selectedLabel }}
+          </span>
+        </div>
       </div>
     </div>
 
-    <div class="body">
+    <div class="body panel-body">
       <div v-if="error" class="errorBox">
         <div class="mono">{{ error }}</div>
       </div>
@@ -38,7 +44,7 @@
       </div>
     </div>
 
-    <div class="footer mono small">
+    <div class="footer panel-footer mono small">
       <span class="muted">root:</span> {{ serverRoot || "—" }}
     </div>
   </section>
@@ -65,6 +71,20 @@ const loading = ref(false);
 const error = ref<string>("");
 
 const depth = ref<number>(5);
+
+/**
+ * Create a compact label for the selected path while preserving the full title.
+ */
+function formatSelectedPath(path: string): string {
+  if (!path) return "";
+  const parts = path.split("/").filter(Boolean);
+  if (parts.length <= 2) return path;
+  return `…/${parts.slice(-2).join("/")}`;
+}
+
+const selectedLabel = computed(() => formatSelectedPath(props.selectedPath));
+
+// TODO: Add UI tests for selection badge and tree row states once a component test harness exists.
 
 async function reload() {
   error.value = "";
@@ -97,7 +117,7 @@ watch(
     // Auto-refresh tree when workspace root changes
     await reload();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // ----- TreeNodeView (internal component) -----
@@ -134,30 +154,53 @@ const TreeNodeView = defineComponent({
 
     return () => {
       // root node
-      const depthIndent = (nodePath.value.split("/").filter(Boolean).length) * 12;
+      const depthIndent = nodePath.value.split("/").filter(Boolean).length * 12;
 
       const row = h(
         "div",
         {
-          class: ["row", isSelected.value ? "selected" : ""],
+          class: [
+            "treeRow",
+            isSelected.value ? "selected" : "",
+            isDir.value ? "is-dir" : isFile.value ? "is-file" : "is-error",
+          ],
           style: { paddingLeft: `${depthIndent}px` },
         },
         [
           isDir.value
-            ? h("span", { class: ["icon", "dir"], onClick: toggle }, open.value ? "▾" : "▸")
-            : h("span", { class: ["icon", isFile.value ? "file" : "err"] }, isError.value ? "!" : "•"),
+            ? h(
+                "span",
+                { class: ["icon", "dir"], onClick: toggle },
+                open.value ? "▾" : "▸",
+              )
+            : h(
+                "span",
+                { class: ["icon", isFile.value ? "file" : "err"] },
+                isError.value ? "!" : "•",
+              ),
           h(
             "span",
             {
-              class: ["name", isDir.value ? "dir" : isFile.value ? "file" : "err"],
+              class: [
+                "name",
+                isDir.value ? "dir" : isFile.value ? "file" : "err",
+              ],
               onDblclick: isDir.value ? toggle : openFile,
               onClick: isFile.value ? openFile : undefined,
-              title: isError.value ? (p.node as any).message : nodePath.value || "",
+              title: isError.value
+                ? (p.node as any).message
+                : nodePath.value || "",
             },
-            nodeName.value
+            nodeName.value,
           ),
-          isError.value ? h("span", { class: "muted", style: { marginLeft: "8px" } }, (p.node as any).message) : null,
-        ]
+          isError.value
+            ? h(
+                "span",
+                { class: "muted", style: { marginLeft: "8px" } },
+                (p.node as any).message,
+              )
+            : null,
+        ],
       );
 
       const kids =
@@ -170,8 +213,8 @@ const TreeNodeView = defineComponent({
                   node: c,
                   selected: p.selected,
                   onOpenFile: (path: string) => emit("open-file", path),
-                })
-              )
+                }),
+              ),
             )
           : null;
 
@@ -188,20 +231,38 @@ import { defineComponent, h } from "vue";
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   overflow: hidden;
 }
 
 .header {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.selectedInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selectedPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 207, 255, 0.35);
+  background: rgba(125, 207, 255, 0.12);
+  color: var(--text);
+  font-size: 12px;
 }
 
 .title {
@@ -211,35 +272,64 @@ import { defineComponent, h } from "vue";
 .body {
   flex: 1;
   overflow: auto;
-  padding: 10px;
-}
-
-.footer {
-  padding: 8px 12px;
-  border-top: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
 }
 
 .tree {
   user-select: none;
 }
 
-.row {
+.treeRow {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
   border-radius: 10px;
   cursor: default;
+  position: relative;
 }
 
-.row:hover {
-  background: rgba(255,255,255,0.03);
+.treeRow:hover {
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.row.selected {
+.treeRow.selected {
   background: rgba(122, 162, 247, 0.14);
   border: 1px solid rgba(122, 162, 247, 0.24);
+}
+
+.treeRow.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.treeRow.is-dir .icon {
+  color: var(--info);
+}
+
+.treeRow.is-file .icon {
+  color: var(--accent);
+}
+
+.treeRow.is-error .icon {
+  color: var(--bad);
+}
+
+.treeRow.is-file .name {
+  color: var(--text);
+}
+
+.treeRow.is-dir .name {
+  color: var(--muted);
+}
+
+.treeRow.is-error .name {
+  color: var(--bad);
 }
 
 .icon {
@@ -276,13 +366,5 @@ import { defineComponent, h } from "vue";
 
 .empty {
   padding: 10px;
-}
-
-.muted {
-  color: var(--muted);
-}
-
-.small {
-  font-size: 12px;
 }
 </style>

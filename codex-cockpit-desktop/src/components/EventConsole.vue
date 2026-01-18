@@ -1,6 +1,6 @@
 <template>
-  <section class="consoleWrap">
-    <div class="consoleHeader">
+  <section class="consoleWrap panel secondary">
+    <div class="consoleHeader panel-header">
       <div class="left">
         <div class="title">Event Console</div>
         <div class="small muted">Streaming SSE events from backend</div>
@@ -27,17 +27,12 @@
       </div>
     </div>
 
-    <div class="console" ref="consoleEl">
+    <div class="console panel-body" ref="consoleEl">
       <div v-if="filtered.length === 0" class="empty">
         No events yet. Create a session and run.
       </div>
 
-      <div
-        v-for="(e, i) in filtered"
-        :key="i"
-        class="event"
-        :class="e.type"
-      >
+      <div v-for="(e, i) in filtered" :key="i" class="event" :class="e.type">
         <div class="meta">
           <span class="badge" :class="e.type">{{ e.type }}</span>
           <span class="ts mono">{{ formatTs(e.ts) }}</span>
@@ -80,12 +75,15 @@ const autoscroll = computed({
 
 const filtered = computed(() => {
   if (filter.value === "all") return props.events;
-  return props.events.filter(e => e.type === filter.value);
+  return props.events.filter((e) => e.type === filter.value);
 });
 
 function pretty(obj: any) {
-  try { return JSON.stringify(obj, null, 2); }
-  catch { return String(obj); }
+  try {
+    return JSON.stringify(obj, null, 2);
+  } catch {
+    return String(obj);
+  }
 }
 
 function formatTs(ts?: number) {
@@ -104,7 +102,7 @@ watch(
   () => props.events.length,
   async () => {
     if (props.autoscroll) await scrollToBottom();
-  }
+  },
 );
 
 onUpdated(async () => {
@@ -117,16 +115,10 @@ onUpdated(async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   overflow: hidden;
 }
 
 .consoleHeader {
-  padding: 12px 12px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -155,8 +147,7 @@ onUpdated(async () => {
 .console {
   flex: 1;
   overflow: auto;
-  padding: 12px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
 }
 
 .empty {
@@ -170,8 +161,38 @@ onUpdated(async () => {
   padding: 10px 10px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
   margin-bottom: 10px;
+}
+
+.event.plan {
+  border-color: rgba(125, 207, 255, 0.35);
+  background: rgba(125, 207, 255, 0.08);
+}
+
+.event.tool {
+  border-color: rgba(122, 162, 247, 0.35);
+  background: rgba(122, 162, 247, 0.08);
+}
+
+.event.thought {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.event.diff {
+  border-color: rgba(158, 206, 106, 0.3);
+  background: rgba(158, 206, 106, 0.05);
+}
+
+.event.status {
+  border-color: rgba(224, 175, 104, 0.35);
+  background: rgba(224, 175, 104, 0.08);
+}
+
+.event.cancelled {
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(148, 163, 184, 0.05);
 }
 
 .event.error {
@@ -196,7 +217,46 @@ onUpdated(async () => {
   border-radius: 999px;
   border: 1px solid var(--border);
   color: var(--muted);
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.badge.plan,
+.badge.tool,
+.badge.diff,
+.badge.status,
+.badge.cancelled,
+.badge.thought {
+  color: var(--text);
+}
+
+.badge.plan {
+  border-color: rgba(125, 207, 255, 0.4);
+  color: var(--info);
+}
+
+.badge.tool {
+  border-color: rgba(122, 162, 247, 0.4);
+  color: var(--accent);
+}
+
+.badge.diff {
+  border-color: rgba(158, 206, 106, 0.4);
+  color: var(--good);
+}
+
+.badge.status {
+  border-color: rgba(224, 175, 104, 0.4);
+  color: var(--warn);
+}
+
+.badge.cancelled {
+  border-color: rgba(148, 163, 184, 0.35);
+  color: var(--muted);
+}
+
+.badge.thought {
+  border-color: rgba(148, 163, 184, 0.35);
+  color: var(--muted);
 }
 
 .badge.error {
@@ -225,5 +285,4 @@ onUpdated(async () => {
   cursor: pointer;
   margin-top: 8px;
 }
-.muted { color: var(--muted); }
 </style>

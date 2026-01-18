@@ -2,11 +2,7 @@ import { computed, ref } from "vue";
 import { apiBase } from "@/lib/api";
 import type { CodexEvent, ModelInfo } from "@/types/codex";
 
-type CockpitStatus =
-  | "idle"
-  | "loading-models"
-  | "creating-session"
-  | "running";
+type CockpitStatus = "idle" | "loading-models" | "creating-session" | "running";
 
 type StatusKind = "neutral" | "good" | "warn" | "bad";
 
@@ -45,8 +41,10 @@ export function useCockpitSession() {
   });
 
   const statusPill = computed((): { text: string; kind: StatusKind } => {
-    if (status.value === "loading-models") return { text: "Loading models…", kind: "neutral" };
-    if (status.value === "creating-session") return { text: "Creating session…", kind: "neutral" };
+    if (status.value === "loading-models")
+      return { text: "Loading models…", kind: "neutral" };
+    if (status.value === "creating-session")
+      return { text: "Creating session…", kind: "neutral" };
     if (status.value === "running") return { text: "Running", kind: "good" };
     return { text: "Idle", kind: "neutral" };
   });
@@ -59,16 +57,24 @@ export function useCockpitSession() {
       const res = await fetch(`${api.value}/models/`, { method: "GET" });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        throw new Error(`load models failed: ${res.status} ${res.statusText} ${text}`);
+        throw new Error(
+          `load models failed: ${res.status} ${res.statusText} ${text}`,
+        );
       }
       const payload = (await res.json()) as { models?: ModelInfo[] };
       models.value = payload.models ?? [];
-      if (!models.value.find(m => m.name === selectedModel.value) && models.value.length > 0) {
+      if (
+        !models.value.find((m) => m.name === selectedModel.value) &&
+        models.value.length > 0
+      ) {
         selectedModel.value = models.value[0].name;
       }
     } catch (e: any) {
       statusDetail.value = e?.message || String(e);
-      pushEvent({ type: "system", content: `load models error: ${statusDetail.value}` });
+      pushEvent({
+        type: "system",
+        content: `load models error: ${statusDetail.value}`,
+      });
     } finally {
       status.value = "idle";
     }
@@ -92,14 +98,22 @@ export function useCockpitSession() {
       });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        throw new Error(`create session failed: ${res.status} ${res.statusText} ${text}`);
+        throw new Error(
+          `create session failed: ${res.status} ${res.statusText} ${text}`,
+        );
       }
       const payload = (await res.json()) as { session_id?: string };
       sessionId.value = payload.session_id ?? "";
-      pushEvent({ type: "system", content: `Session created: ${sessionId.value || "unknown"}` });
+      pushEvent({
+        type: "system",
+        content: `Session created: ${sessionId.value || "unknown"}`,
+      });
     } catch (e: any) {
       statusDetail.value = e?.message || String(e);
-      pushEvent({ type: "system", content: `create session error: ${statusDetail.value}` });
+      pushEvent({
+        type: "system",
+        content: `create session error: ${statusDetail.value}`,
+      });
     } finally {
       status.value = "idle";
     }
@@ -113,13 +127,20 @@ export function useCockpitSession() {
     statusDetail.value = "";
 
     try {
-      const runRes = await fetch(`${api.value}/sessions/${encodeURIComponent(sessionId.value)}/run`, { method: "POST" });
+      const runRes = await fetch(
+        `${api.value}/sessions/${encodeURIComponent(sessionId.value)}/run`,
+        { method: "POST" },
+      );
       if (!runRes.ok) {
         const text = await runRes.text().catch(() => "");
-        throw new Error(`run failed: ${runRes.status} ${runRes.statusText} ${text}`);
+        throw new Error(
+          `run failed: ${runRes.status} ${runRes.statusText} ${text}`,
+        );
       }
 
-      source = new EventSource(`${api.value}/sessions/${encodeURIComponent(sessionId.value)}/events`);
+      source = new EventSource(
+        `${api.value}/sessions/${encodeURIComponent(sessionId.value)}/events`,
+      );
       source.onmessage = (ev) => {
         try {
           const data = JSON.parse(ev.data) as CodexEvent;
@@ -129,7 +150,10 @@ export function useCockpitSession() {
             status.value = "idle";
           }
         } catch (e: any) {
-          pushEvent({ type: "system", content: `bad event payload: ${e?.message || String(e)}` });
+          pushEvent({
+            type: "system",
+            content: `bad event payload: ${e?.message || String(e)}`,
+          });
         }
       };
       source.onerror = () => {
@@ -151,7 +175,10 @@ export function useCockpitSession() {
 
     if (!sessionId.value) return;
     try {
-      await fetch(`${api.value}/sessions/${encodeURIComponent(sessionId.value)}/stop`, { method: "POST" });
+      await fetch(
+        `${api.value}/sessions/${encodeURIComponent(sessionId.value)}/stop`,
+        { method: "POST" },
+      );
     } catch {
       // best-effort
     }
@@ -186,4 +213,3 @@ export function useCockpitSession() {
     clearEvents,
   };
 }
-

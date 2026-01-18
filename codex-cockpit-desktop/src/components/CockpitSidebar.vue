@@ -1,6 +1,6 @@
 <template>
-  <aside class="sidebar">
-    <div class="section">
+  <aside class="sidebar panel">
+    <div class="section card">
       <div class="sectionTitle">Session</div>
 
       <div class="field">
@@ -11,7 +11,9 @@
           </option>
         </select>
         <div class="small mono muted" v-if="selectedModelInfo">
-          ctx={{ selectedModelInfo.context ?? "?" }} • tools={{ selectedModelInfo.tools ?? false }}
+          ctx={{ selectedModelInfo.context ?? "?" }} • tools={{
+            selectedModelInfo.tools ?? false
+          }}
         </div>
       </div>
 
@@ -23,11 +25,17 @@
 
       <div class="field">
         <div class="label">Goal</div>
-        <textarea class="textarea" v-model="goal" placeholder="What should the agent do?" />
+        <textarea
+          class="textarea"
+          v-model="goal"
+          placeholder="What should the agent do?"
+        />
       </div>
 
-      <div class="row">
-        <button class="btn" @click="loadModels" :disabled="busyModels">Reload Models</button>
+      <div class="row align-center">
+        <button class="btn" @click="loadModels" :disabled="busyModels">
+          Reload Models
+        </button>
         <button class="btn primary" @click="newSession" :disabled="busyCreate">
           Create Session
         </button>
@@ -40,7 +48,7 @@
         <div class="codeblock mono">{{ sessionId || "—" }}</div>
       </div>
 
-      <div class="row">
+      <div class="row align-center">
         <button class="btn primary" @click="run" :disabled="!canRun || busyRun">
           Run
         </button>
@@ -49,23 +57,24 @@
         </button>
       </div>
 
-      <div class="row">
+      <div class="row align-center">
         <button class="btn" @click="clearEvents">Clear Console</button>
       </div>
 
       <div class="small muted">
-        Stop(Local) only closes the stream. Backend stop is available at `POST /sessions/{id}/stop`.
+        Stop(Local) only closes the stream. Backend stop is available at `POST
+        /sessions/{id}/stop`.
       </div>
     </div>
 
-    <div class="section">
+    <div class="section card">
       <div class="sectionTitle">Notes</div>
       <div class="small muted">
         Next steps on the roadmap:
-        <div class="mono" style="margin-top:8px;">
-          B) UI layout ✅<br/>
-          C) Diff + workspace viewer<br/>
-          D) Model routing ✅<br/>
+        <div class="mono" style="margin-top: 8px">
+          B) UI layout ✅<br />
+          C) Diff + workspace viewer<br />
+          D) Model routing ✅<br />
           E) Tauri desktop ✅
         </div>
       </div>
@@ -117,46 +126,39 @@ const busyModels = computed(() => props.status === "loading-models");
 const busyCreate = computed(() => props.status === "creating-session");
 const busyRun = computed(() => props.status === "running");
 
-const selectedModelInfo = computed(() => props.models.find(m => m.name === props.selectedModel) || null);
+const selectedModelInfo = computed(
+  () => props.models.find((m) => m.name === props.selectedModel) || null,
+);
 
-function loadModels() { emit("loadModels"); }
-function newSession() { emit("newSession"); }
-function run() { emit("run"); }
-function stopLocal() { emit("stopLocal"); }
-function clearEvents() { emit("clearEvents"); }
+function loadModels() {
+  emit("loadModels");
+}
+function newSession() {
+  emit("newSession");
+}
+function run() {
+  emit("run");
+}
+function stopLocal() {
+  emit("stopLocal");
+}
+function clearEvents() {
+  emit("clearEvents");
+}
 </script>
 
 <style scoped>
 .sidebar {
   height: 100%;
-  background: var(--panel);
-  border-right: 1px solid var(--border);
   padding: 14px;
   overflow: auto;
-}
-
-.section {
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 12px;
-}
-
-.sectionTitle {
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.row {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
 }
 
 .row .btn {
   flex: 1;
 }
 
-.muted { color: var(--muted); }
+.section.card {
+  margin-bottom: 12px;
+}
 </style>

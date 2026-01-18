@@ -47,7 +47,9 @@ export async function fetchWorkspaceTree(opts: {
   const res = await fetch(u.toString(), { method: "GET" });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`workspace tree failed: ${res.status} ${res.statusText} ${text}`);
+    throw new Error(
+      `workspace tree failed: ${res.status} ${res.statusText} ${text}`,
+    );
   }
   return (await res.json()) as WorkspaceTreeResponse;
 }
@@ -65,7 +67,9 @@ export async function fetchWorkspaceFile(opts: {
   const res = await fetch(u.toString(), { method: "GET" });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`workspace file failed: ${res.status} ${res.statusText} ${text}`);
+    throw new Error(
+      `workspace file failed: ${res.status} ${res.statusText} ${text}`,
+    );
   }
   return (await res.json()) as WorkspaceFileResponse;
 }

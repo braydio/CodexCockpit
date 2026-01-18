@@ -4,34 +4,95 @@
       <div class="title">CodexCockpit</div>
       <div class="small muted mono">api={{ api }}</div>
     </div>
+
+    <div class="right">
+      <div class="themeLabel small muted mono">Theme</div>
+      <select
+        class="select mono themeSelect"
+        v-model="theme"
+        @change="applyTheme"
+      >
+        <option value="system">system</option>
+        <option value="dark">dark</option>
+        <option value="light">light</option>
+      </select>
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
+
 defineProps<{
   api: string;
 }>();
+
+type ThemeMode = "system" | "dark" | "light";
+
+const theme = ref<ThemeMode>("system");
+
+/**
+ * Update the document theme attribute so global styles can respond.
+ */
+function setRootTheme(mode: ThemeMode) {
+  const root = document.documentElement;
+  if (mode === "system") {
+    root.removeAttribute("data-theme");
+    return;
+  }
+  root.setAttribute("data-theme", mode);
+}
+
+/**
+ * Store the current theme preference for subsequent sessions.
+ */
+function persistTheme(mode: ThemeMode) {
+  localStorage.setItem("cockpit-theme", mode);
+}
+
+/**
+ * Apply the selected theme immediately and store the preference.
+ */
+function applyTheme() {
+  setRootTheme(theme.value);
+  persistTheme(theme.value);
+}
+
+/**
+ * Recover the previously saved theme preference, if any.
+ */
+function restoreTheme(): ThemeMode {
+  const saved = localStorage.getItem("cockpit-theme") as ThemeMode | null;
+  return saved ?? "system";
+}
+
+onMounted(() => {
+  theme.value = restoreTheme();
+  setRootTheme(theme.value);
+});
 </script>
 
 <style scoped>
-.topbar {
+.left {
   display: flex;
   align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
+  gap: 10px;
 }
 
 .title {
   font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.small {
-  font-size: 12px;
+.right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.muted {
-  color: var(--muted);
+.themeSelect {
+  width: auto;
+  min-width: 120px;
 }
 </style>
-
