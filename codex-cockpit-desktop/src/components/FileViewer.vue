@@ -21,6 +21,8 @@
       <div class="mono small">
         <span class="muted">size:</span> {{ fileInfo.size }} bytes
         <span class="muted"> • </span>
+        <span class="muted">lines:</span> {{ lineCount }}
+        <span class="muted"> • </span>
         <span class="muted">abs:</span> {{ fileInfo.abs_path }}
       </div>
       <div v-if="fileInfo.truncated" class="warn mono small">
@@ -31,13 +33,19 @@
     <div class="body panel-body">
       <div v-if="error" class="errorBox mono">{{ error }}</div>
       <div v-else-if="loading" class="loading muted">Loading file…</div>
+      <div v-else-if="!filePath" class="emptyState">
+        <div class="emptyTitle mono">No file selected</div>
+        <div class="small muted">
+          Select a file in the workspace tree to preview its contents.
+        </div>
+      </div>
       <pre v-else class="content mono">{{ fileInfo?.text || placeholder }}</pre>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import type { WorkspaceFileResponse } from "@/lib/workspaceApi";
 import { fetchWorkspaceFile } from "@/lib/workspaceApi";
 
@@ -51,6 +59,18 @@ const loading = ref(false);
 const error = ref("");
 
 const placeholder = "No file selected.";
+
+/**
+ * Count the number of lines in the file contents for display metadata.
+ */
+function countLines(text?: string | null): number {
+  if (!text) return 0;
+  return text.split(/\r?\n/).length;
+}
+
+const lineCount = computed(() => countLines(fileInfo.value?.text));
+
+// TODO: Add component tests for empty state and metadata rendering when a UI test harness is available.
 
 async function reload() {
   error.value = "";
@@ -119,6 +139,21 @@ watch(
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.emptyState {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.emptyTitle {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .errorBox {

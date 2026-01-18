@@ -28,6 +28,10 @@ status colors. The most commonly used tokens are:
   messaging.
 - `--radius-*`, `--space-*`, `--shadow` for shape and rhythm.
 
+Dark mode also applies a subtle animated glow overlay (`body::before`) to add
+terminal-style movement. The animation is disabled automatically when
+`prefers-reduced-motion` is set.
+
 ## Utility Classes
 
 `theme.css` defines reusable utility classes so future UI sections can adopt a

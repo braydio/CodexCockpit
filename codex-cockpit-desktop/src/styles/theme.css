@@ -103,8 +103,42 @@ body {
   line-height: 1.4;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(122, 162, 247, 0.2),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 80% 10%,
+      rgba(125, 207, 255, 0.16),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      rgba(158, 206, 106, 0.12),
+      transparent 55%
+    );
+  mix-blend-mode: screen;
+  transition: opacity var(--transition);
+  z-index: 0;
+}
+
+:root:not([data-theme="light"]) body::before {
+  opacity: 0.14;
+  animation: terminalGlow 14s ease-in-out infinite;
+}
+
 #app {
   height: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 a {
@@ -770,6 +804,27 @@ pre {
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@keyframes terminalGlow {
+  0% {
+    transform: translate3d(0, 0, 0);
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+    filter: hue-rotate(10deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    filter: hue-rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-theme="light"]) body::before {
+    animation: none;
   }
 }
 

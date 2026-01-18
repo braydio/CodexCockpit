@@ -15,6 +15,12 @@
           <option :value="6">depth 6</option>
           <option :value="8">depth 8</option>
         </select>
+        <div v-if="selectedPath" class="selectedInfo">
+          <span class="badge info">selected</span>
+          <span class="selectedPill mono" :title="selectedPath">
+            {{ selectedLabel }}
+          </span>
+        </div>
       </div>
     </div>
 
@@ -65,6 +71,20 @@ const loading = ref(false);
 const error = ref<string>("");
 
 const depth = ref<number>(5);
+
+/**
+ * Create a compact label for the selected path while preserving the full title.
+ */
+function formatSelectedPath(path: string): string {
+  if (!path) return "";
+  const parts = path.split("/").filter(Boolean);
+  if (parts.length <= 2) return path;
+  return `…/${parts.slice(-2).join("/")}`;
+}
+
+const selectedLabel = computed(() => formatSelectedPath(props.selectedPath));
+
+// TODO: Add UI tests for selection badge and tree row states once a component test harness exists.
 
 async function reload() {
   error.value = "";
@@ -139,7 +159,11 @@ const TreeNodeView = defineComponent({
       const row = h(
         "div",
         {
-          class: ["treeRow", isSelected.value ? "selected" : ""],
+          class: [
+            "treeRow",
+            isSelected.value ? "selected" : "",
+            isDir.value ? "is-dir" : isFile.value ? "is-file" : "is-error",
+          ],
           style: { paddingLeft: `${depthIndent}px` },
         },
         [
@@ -217,6 +241,30 @@ import { defineComponent, h } from "vue";
   gap: 12px;
 }
 
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.selectedInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selectedPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 207, 255, 0.35);
+  background: rgba(125, 207, 255, 0.12);
+  color: var(--text);
+  font-size: 12px;
+}
+
 .title {
   font-weight: 800;
 }
@@ -237,6 +285,7 @@ import { defineComponent, h } from "vue";
   padding: 6px 8px;
   border-radius: 10px;
   cursor: default;
+  position: relative;
 }
 
 .treeRow:hover {
@@ -246,6 +295,41 @@ import { defineComponent, h } from "vue";
 .treeRow.selected {
   background: rgba(122, 162, 247, 0.14);
   border: 1px solid rgba(122, 162, 247, 0.24);
+}
+
+.treeRow.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.treeRow.is-dir .icon {
+  color: var(--info);
+}
+
+.treeRow.is-file .icon {
+  color: var(--accent);
+}
+
+.treeRow.is-error .icon {
+  color: var(--bad);
+}
+
+.treeRow.is-file .name {
+  color: var(--text);
+}
+
+.treeRow.is-dir .name {
+  color: var(--muted);
+}
+
+.treeRow.is-error .name {
+  color: var(--bad);
 }
 
 .icon {
