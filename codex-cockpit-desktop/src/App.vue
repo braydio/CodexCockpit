@@ -1,4 +1,3 @@
-
 <template>
   <div class="app">
     <TopBar :api="api" />
@@ -21,10 +20,18 @@
 
       <div class="content">
         <div class="tabs">
-          <button class="tab" :class="{ active: activeTab === 'console' }" @click="activeTab = 'console'">
+          <button
+            class="tab"
+            :class="{ active: activeTab === 'console' }"
+            @click="activeTab = 'console'"
+          >
             Console
           </button>
-          <button class="tab" :class="{ active: activeTab === 'workspace' }" @click="activeTab = 'workspace'">
+          <button
+            class="tab"
+            :class="{ active: activeTab === 'workspace' }"
+            @click="activeTab = 'workspace'"
+          >
             Workspace
           </button>
         </div>
@@ -43,10 +50,7 @@
               @open-file="(p) => (selectedFile = p)"
               @tree-loaded="onTreeLoaded"
             />
-            <FileViewer
-              :workspace="workspace"
-              :filePath="selectedFile"
-            />
+            <FileViewer :workspace="workspace" :filePath="selectedFile" />
           </div>
         </div>
       </div>
@@ -111,60 +115,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.app {
-  height: 100vh;
-  display: grid;
-  grid-template-rows: 56px 1fr 36px;
-}
-
-.main {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 12px;
-  padding: 12px;
-  overflow: hidden;
-}
-
-.content {
-  height: 100%;
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: 44px 1fr;
-  gap: 10px;
-}
-
 .tabs {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.tab {
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
-  color: var(--muted);
-  padding: 8px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-.tab.active {
-  color: var(--text);
-  border-color: rgba(122, 162, 247, 0.35);
-  background: rgba(122, 162, 247, 0.10);
-}
-
-.pane {
-  height: 100%;
-  overflow: hidden;
-}
-
-.workspaceGrid {
-  height: 100%;
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 12px;
-  overflow: hidden;
+  justify-self: start;
 }
 </style>
-
