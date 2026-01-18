@@ -1,7 +1,6 @@
-
 <template>
-  <section class="wrap">
-    <div class="header">
+  <section class="wrap panel secondary">
+    <div class="header panel-header">
       <div class="left">
         <div class="title">File Viewer</div>
         <div class="small muted">Click a file in the tree to open</div>
@@ -12,11 +11,13 @@
           <span class="dot"></span>
           {{ filePath }}
         </span>
-        <button class="btn" @click="reload" :disabled="!filePath || loading">Reload</button>
+        <button class="btn" @click="reload" :disabled="!filePath || loading">
+          Reload
+        </button>
       </div>
     </div>
 
-    <div class="meta" v-if="fileInfo">
+    <div class="meta panel-subheader" v-if="fileInfo">
       <div class="mono small">
         <span class="muted">size:</span> {{ fileInfo.size }} bytes
         <span class="muted"> • </span>
@@ -27,7 +28,7 @@
       </div>
     </div>
 
-    <div class="body">
+    <div class="body panel-body">
       <div v-if="error" class="errorBox mono">{{ error }}</div>
       <div v-else-if="loading" class="loading muted">Loading file…</div>
       <pre v-else class="content mono">{{ fileInfo?.text || placeholder }}</pre>
@@ -77,7 +78,7 @@ watch(
   async () => {
     await reload();
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 
@@ -86,16 +87,10 @@ watch(
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
   overflow: hidden;
 }
 
 .header {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -107,9 +102,6 @@ watch(
 }
 
 .meta {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -119,7 +111,6 @@ watch(
 .body {
   flex: 1;
   overflow: auto;
-  padding: 12px;
 }
 
 .content {
@@ -143,13 +134,5 @@ watch(
 
 .warn {
   color: var(--warn);
-}
-
-.muted {
-  color: var(--muted);
-}
-
-.small {
-  font-size: 12px;
 }
 </style>
