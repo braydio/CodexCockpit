@@ -1,14 +1,16 @@
 <template>
   <aside class="sidebar panel">
+    <!-- SESSION PANEL -->
     <div class="section card panel">
       <div class="panel-header">
         <div>
-          <div class="sectionTitle">Session</div>
+          <div class="sectionTitle">1. Session</div>
           <div class="small muted">
             Configure the model, workspace, and goal before creating a session.
           </div>
         </div>
       </div>
+
       <div class="panel-body">
         <div class="field">
           <div class="label">Model</div>
@@ -48,8 +50,12 @@
             :disabled="endpointMode === 'default'"
             placeholder="http://localhost:11434"
           />
-          <div class="small mono muted">default: {{ defaultEndpoint || "—" }}</div>
-          <div class="small muted" v-if="effectiveEndpoint">using: {{ effectiveEndpoint }}</div>
+          <div class="small mono muted">
+            default: {{ defaultEndpoint || "—" }}
+          </div>
+          <div class="small muted" v-if="effectiveEndpoint">
+            using: {{ effectiveEndpoint }}
+          </div>
         </div>
 
         <div class="row">
@@ -57,22 +63,38 @@
             Fetch Ollama Models
           </button>
         </div>
+
         <div class="field">
           <div class="label">Saved Endpoints</div>
-          <select class="select mono" v-model="selectedSavedEndpoint" @change="selectSavedEndpoint">
+          <select
+            class="select mono"
+            v-model="selectedSavedEndpoint"
+            @change="selectSavedEndpoint"
+          >
             <option value="">Select saved…</option>
-            <option v-for="endpoint in savedEndpoints" :key="endpoint" :value="endpoint">
+            <option
+              v-for="endpoint in savedEndpoints"
+              :key="endpoint"
+              :value="endpoint"
+            >
               {{ endpoint }}
             </option>
           </select>
           <div class="row">
             <button class="btn" @click="saveCurrentEndpoint">Save Current</button>
-            <button class="btn" @click="removeSelectedEndpoint" :disabled="!selectedSavedEndpoint">
+            <button
+              class="btn"
+              @click="removeSelectedEndpoint"
+              :disabled="!selectedSavedEndpoint"
+            >
               Remove
             </button>
           </div>
         </div>
-        <div class="small mono muted" v-if="ollamaStatus">{{ ollamaStatus }}</div>
+
+        <div class="small mono muted" v-if="ollamaStatus">
+          {{ ollamaStatus }}
+        </div>
         <div class="codeblock mono" v-if="ollamaModels.length">
           {{ ollamaModels.join("\n") }}
         </div>
@@ -95,7 +117,7 @@
           </button>
         </div>
 
-        <div class="hr"></div>
+        <div class="hr stepDivider"></div>
 
         <div class="field">
           <div class="label">Session ID</div>
@@ -104,36 +126,63 @@
       </div>
     </div>
 
+    <!-- EXECUTION PANEL -->
     <div class="section card panel">
       <div class="panel-header">
         <div>
-          <div class="sectionTitle">Execution</div>
+          <div class="sectionTitle">2. Execution</div>
           <div class="small muted">
             Run the active session, stop the local stream, or clear console output.
           </div>
         </div>
       </div>
+
       <div class="panel-body">
         <div class="row align-center">
-          <button class="btn primary" @click="run" :disabled="!canRun || busyRun">
-            Run
+          <button
+            class="btn"
+            :class="{ primary: hasSession }"
+            @click="run"
+            :disabled="!canRun || busyRun"
+          >
+            {{ hasSession ? "Run" : "Run (create session first)" }}
           </button>
           <button class="btn danger" @click="stopLocal" :disabled="!busyRun">
             Stop (Local)
           </button>
         </div>
 
-        <div class="row align-center">
-          <button class="btn" @click="clearEvents">Clear Console</button>
+        <div class="small muted runHint" v-if="!hasSession">
+          Create a session to enable execution.
+        </div>
+        <div class="small muted runHint" v-else>
+          Execution streams to the console below.
+        </div>
+
+        <div class="secondaryActions">
+          <div class="small muted">Secondary actions</div>
+          <div class="row align-center">
+            <button
+              class="btn danger secondary"
+              @click="stopLocal"
+              :disabled="!busyRun"
+            >
+              Stop (Local)
+            </button>
+            <button class="btn secondary" @click="clearEvents">
+              Clear Console
+            </button>
+          </div>
         </div>
 
         <div class="small muted">
-          Stop(Local) only closes the stream. Backend stop is available at `POST
-          /sessions/{id}/stop`.
+          Stop(Local) only closes the stream. Backend stop is available at
+          <code>POST /sessions/{id}/stop</code>.
         </div>
       </div>
     </div>
 
+    <!-- ABOUT PANEL -->
     <div class="section card panel">
       <div class="panel-header">
         <div>
@@ -230,6 +279,7 @@ const selectedSavedEndpoint = computed({
 const busyModels = computed(() => props.status === "loading-models");
 const busyCreate = computed(() => props.status === "creating-session");
 const busyRun = computed(() => props.status === "running");
+const hasSession = computed(() => Boolean(props.sessionId));
 
 const selectedModelInfo = computed(
   () => props.models.find((m) => m.name === props.selectedModel) || null,
@@ -270,6 +320,12 @@ function clearEvents() { emit("clearEvents"); }
   margin-bottom: 10px;
 }
 
+.sectionTitle.subsection {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .row {
   display: flex;
   gap: 10px;
@@ -290,5 +346,25 @@ function clearEvents() { emit("clearEvents"); }
 
 .section.card {
   margin-bottom: 12px;
+}
+
+.stepDivider {
+  margin: 16px 0 12px;
+}
+
+.runHint {
+  margin-top: 6px;
+}
+
+.secondaryActions {
+  margin-top: 14px;
+}
+
+.secondaryActions .btn.secondary {
+  opacity: 0.72;
+}
+
+.secondaryActions .btn.secondary:hover:not(:disabled) {
+  opacity: 0.9;
 }
 </style>
