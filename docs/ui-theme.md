@@ -46,3 +46,9 @@ consistent terminal cockpit style:
 
 When adding new UI modules, prefer these utilities over introducing new
 one-off styles.
+
+## Panel Layout Guidance
+
+Panel headers should focus on primary context and controls (such as buttons or
+selectors). Supplemental context, including selected-path pills, should live in
+the panel body or footer to keep headers compact and scannable.

@@ -15,12 +15,6 @@
           <option :value="6">depth 6</option>
           <option :value="8">depth 8</option>
         </select>
-        <div v-if="selectedPath" class="selectedInfo">
-          <span class="badge info">selected</span>
-          <span class="selectedPill mono" :title="selectedPath">
-            {{ selectedLabel }}
-          </span>
-        </div>
       </div>
     </div>
 
@@ -30,6 +24,13 @@
       </div>
 
       <div v-if="loading" class="loading muted">Loading tree…</div>
+
+      <div v-if="selectedPath" class="selectedInfo selectedInfoBody">
+        <span class="badge info">selected</span>
+        <span class="selectedPill mono" :title="selectedPath">
+          {{ selectedLabel }}
+        </span>
+      </div>
 
       <div v-if="!loading && tree" class="tree mono">
         <TreeNodeView
@@ -252,6 +253,10 @@ import { defineComponent, h } from "vue";
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.selectedInfoBody {
+  margin: 4px 0 10px;
 }
 
 .selectedPill {
