@@ -6,24 +6,45 @@
         <div class="small muted">Streaming SSE events from backend</div>
       </div>
 
-      <div class="right">
-        <label class="toggle">
-          <input type="checkbox" v-model="autoscroll" />
-          <span>Autoscroll</span>
-        </label>
+      <div class="controls toolbar compact">
+        <div class="toolbar-group">
+          <label class="toggle compact">
+            <input type="checkbox" v-model="autoscroll" />
+            <span>Autoscroll</span>
+          </label>
+        </div>
 
-        <select class="select mono" v-model="filter">
-          <option value="all">all</option>
-          <option value="system">system</option>
-          <option value="plan">plan</option>
-          <option value="thought">thought</option>
-          <option value="tool">tool</option>
-          <option value="diff">diff</option>
-          <option value="status">status</option>
-          <option value="final">final</option>
-          <option value="cancelled">cancelled</option>
-          <option value="error">error</option>
-        </select>
+        <div class="toolbar-group">
+          <label class="toggle compact">
+            <input type="checkbox" v-model="compactView" />
+            <span>Compact view</span>
+          </label>
+        </div>
+
+        <div class="toolbar-group">
+          <input
+            class="input compact mono"
+            v-model="contentFilter"
+            type="text"
+            placeholder="Filter content"
+            aria-label="Filter event content"
+          />
+        </div>
+
+        <div class="toolbar-group">
+          <select class="select compact mono" v-model="typeFilter">
+            <option value="all">all</option>
+            <option value="system">system</option>
+            <option value="plan">plan</option>
+            <option value="thought">thought</option>
+            <option value="tool">tool</option>
+            <option value="diff">diff</option>
+            <option value="status">status</option>
+            <option value="final">final</option>
+            <option value="cancelled">cancelled</option>
+            <option value="error">error</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -32,18 +53,32 @@
         No events yet. Create a session and run.
       </div>
 
-      <div v-for="(e, i) in filtered" :key="i" class="event" :class="e.type">
-        <div class="meta">
+      <div
+        v-for="(e, i) in filtered"
+        :key="eventKey(e, i)"
+        class="event"
+        :class="e.type"
+      >
+        <div class="meta" :class="{ compact: compactView }">
           <span class="badge" :class="e.type">{{ e.type }}</span>
-          <span class="ts mono">{{ formatTs(e.ts) }}</span>
+          <span v-if="!compactView" class="ts mono">{{ formatTs(e.ts) }}</span>
         </div>
 
-        <div class="content mono">
-          <span v-if="e.type === 'thought'">{{ e.content }}</span>
-          <span v-else>{{ e.content }}</span>
+        <div class="content mono" :class="{ compact: compactView }">
+          <span>{{ displayContent(e, i) }}</span>
         </div>
 
-        <details v-if="e.meta" class="details">
+        <div v-if="shouldShowExpand(e)" class="content-toggle">
+          <button
+            class="btn ghost compact"
+            type="button"
+            @click="toggleExpanded(eventKey(e, i))"
+          >
+            {{ isExpanded(eventKey(e, i)) ? "Collapse" : "Expand" }}
+          </button>
+        </div>
+
+        <details v-if="e.meta && !compactView" class="details">
           <summary class="mono muted">meta</summary>
           <pre class="codeblock mono">{{ pretty(e.meta) }}</pre>
         </details>
@@ -66,7 +101,11 @@ const emit = defineEmits<{
 }>();
 
 const consoleEl = ref<HTMLDivElement | null>(null);
-const filter = ref<string>("all");
+const typeFilter = ref<string>("all");
+const contentFilter = ref<string>("");
+const compactView = ref(false);
+const expandedKeys = ref<Set<string>>(new Set());
+const maxCompactLines = 6;
 
 const autoscroll = computed({
   get: () => props.autoscroll,
@@ -74,10 +113,25 @@ const autoscroll = computed({
 });
 
 const filtered = computed(() => {
-  if (filter.value === "all") return props.events;
-  return props.events.filter((e) => e.type === filter.value);
+  const filterValue = typeFilter.value;
+  const query = contentFilter.value.trim().toLowerCase();
+  return props.events.filter((event) => {
+    if (filterValue !== "all" && event.type !== filterValue) return false;
+    if (!query) return true;
+    return matchesContentFilter(event.content, query);
+  });
 });
 
+/**
+ * Build a stable key for each event row to track expanded state.
+ */
+function eventKey(event: CodexEvent, index: number) {
+  return `${event.ts ?? "no-ts"}-${event.type}-${index}`;
+}
+
+/**
+ * Render metadata objects as readable JSON.
+ */
 function pretty(obj: any) {
   try {
     return JSON.stringify(obj, null, 2);
@@ -86,12 +140,73 @@ function pretty(obj: any) {
   }
 }
 
+/**
+ * Normalize event content to a string and return split lines.
+ */
+function contentLines(content: unknown) {
+  return String(content ?? "").split("\n");
+}
+
+/**
+ * Return display-friendly text for the event content.
+ */
+function displayContent(event: CodexEvent, index: number) {
+  if (!compactView.value) return String(event.content ?? "");
+  const lines = contentLines(event.content);
+  if (lines.length <= maxCompactLines || isExpanded(eventKey(event, index))) {
+    return lines.join("\n");
+  }
+  // Keep the first chunk of lines to preserve context in compact view.
+  return lines.slice(0, maxCompactLines).join("\n");
+}
+
+/**
+ * Decide whether to show the expand/collapse control.
+ */
+function shouldShowExpand(event: CodexEvent) {
+  if (!compactView.value) return false;
+  return contentLines(event.content).length > maxCompactLines;
+}
+
+/**
+ * Toggle expanded state for a specific event key.
+ */
+function toggleExpanded(key: string) {
+  const next = new Set(expandedKeys.value);
+  if (next.has(key)) {
+    next.delete(key);
+  } else {
+    next.add(key);
+  }
+  expandedKeys.value = next;
+}
+
+/**
+ * Check whether the event content should be expanded.
+ */
+function isExpanded(key: string) {
+  return expandedKeys.value.has(key);
+}
+
+/**
+ * Match a content string against the current filter value.
+ */
+function matchesContentFilter(content: unknown, query: string) {
+  return String(content ?? "").toLowerCase().includes(query);
+}
+
+/**
+ * Format a timestamp for display in the console.
+ */
 function formatTs(ts?: number) {
   if (!ts) return "—";
   const d = new Date(ts);
   return d.toLocaleTimeString();
 }
 
+/**
+ * Scroll to the bottom of the console once DOM updates settle.
+ */
 async function scrollToBottom() {
   await nextTick();
   if (!consoleEl.value) return;
@@ -129,19 +244,8 @@ onUpdated(async () => {
   font-weight: 800;
 }
 
-.right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 12px;
-  user-select: none;
+.controls {
+  justify-content: flex-end;
 }
 
 .console {
@@ -209,6 +313,10 @@ onUpdated(async () => {
   gap: 10px;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.meta.compact {
+  margin-bottom: 4px;
 }
 
 .badge {
@@ -279,6 +387,10 @@ onUpdated(async () => {
   word-break: break-word;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.content-toggle {
+  margin-top: 6px;
 }
 
 .details summary {
