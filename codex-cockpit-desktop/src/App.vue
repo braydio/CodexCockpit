@@ -26,7 +26,6 @@
         @stopLocal="stopLocal"
         @clearEvents="clearEvents"
         @loadOllamaModels="loadOllamaModels"
-        @selectSavedEndpoint="selectSavedEndpoint"
         @saveCurrentEndpoint="saveCurrentEndpoint"
         @removeSelectedEndpoint="removeSelectedEndpoint"
       />
@@ -123,7 +122,6 @@ const {
   stopLocal,
   clearEvents,
   loadOllamaModels,
-  selectSavedEndpoint,
   saveCurrentEndpoint,
   removeSelectedEndpoint,
 } = useCockpitSession();

@@ -44,42 +44,47 @@
               <span>Custom</span>
             </label>
           </div>
-          <input
-            class="input mono"
-            v-model="customEndpoint"
-            :disabled="endpointMode === 'default'"
-            placeholder="http://localhost:11434"
-          />
+          <div class="endpointPicker" ref="endpointPicker" @focusout="onEndpointFocusOut">
+            <input
+              ref="endpointInput"
+              class="input mono"
+              :value="endpointInputValue"
+              :disabled="endpointMode === 'default'"
+              :placeholder="endpointPlaceholder"
+              @input="onEndpointInput"
+            />
+            <button
+              class="btn iconButton"
+              type="button"
+              :disabled="endpointMode === 'default' || !savedEndpoints.length"
+              @click="toggleEndpointDropdown"
+            >
+              v
+            </button>
+            <div
+              v-if="endpointMode === 'custom' && endpointDropdownOpen"
+              class="endpointDropdown"
+            >
+              <button
+                v-for="endpoint in savedEndpoints"
+                :key="endpoint"
+                type="button"
+                class="dropdownItem mono"
+                @click="chooseSavedEndpoint(endpoint)"
+              >
+                {{ endpoint }}
+              </button>
+              <div v-if="!savedEndpoints.length" class="dropdownEmpty small muted">
+                No saved endpoints yet.
+              </div>
+            </div>
+          </div>
           <div class="small mono muted">
             default: {{ defaultEndpoint || "—" }}
           </div>
           <div class="small muted" v-if="effectiveEndpoint">
             using: {{ effectiveEndpoint }}
           </div>
-        </div>
-
-        <div class="row">
-          <button class="btn" @click="loadOllamaModels" :disabled="ollamaLoading">
-            Fetch Ollama Models
-          </button>
-        </div>
-
-        <div class="field">
-          <div class="label">Saved Endpoints</div>
-          <select
-            class="select mono"
-            v-model="selectedSavedEndpoint"
-            @change="selectSavedEndpoint"
-          >
-            <option value="">Select saved…</option>
-            <option
-              v-for="endpoint in savedEndpoints"
-              :key="endpoint"
-              :value="endpoint"
-            >
-              {{ endpoint }}
-            </option>
-          </select>
           <div class="row">
             <button class="btn" @click="saveCurrentEndpoint">Save Current</button>
             <button
@@ -90,6 +95,12 @@
               Remove
             </button>
           </div>
+        </div>
+
+        <div class="row">
+          <button class="btn" @click="loadOllamaModels" :disabled="ollamaLoading">
+            Fetch Ollama Models
+          </button>
         </div>
 
         <div class="small mono muted" v-if="ollamaStatus">
@@ -206,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { ModelInfo } from "@/types/codex";
 
 const props = defineProps<{
@@ -237,7 +248,6 @@ const emit = defineEmits<{
   (e: "update:selectedSavedEndpoint", v: string): void;
   (e: "loadModels"): void;
   (e: "loadOllamaModels"): void;
-  (e: "selectSavedEndpoint", v: string): void;
   (e: "saveCurrentEndpoint"): void;
   (e: "removeSelectedEndpoint"): void;
   (e: "newSession"): void;
@@ -276,6 +286,10 @@ const selectedSavedEndpoint = computed({
   set: (v: string) => emit("update:selectedSavedEndpoint", v),
 });
 
+const endpointDropdownOpen = ref(false);
+const endpointPicker = ref<HTMLElement | null>(null);
+const endpointInput = ref<HTMLInputElement | null>(null);
+
 const busyModels = computed(() => props.status === "loading-models");
 const busyCreate = computed(() => props.status === "creating-session");
 const busyRun = computed(() => props.status === "running");
@@ -285,19 +299,60 @@ const selectedModelInfo = computed(
   () => props.models.find((m) => m.name === props.selectedModel) || null,
 );
 
+const endpointPlaceholder = computed(() =>
+  endpointMode.value === "default"
+    ? defaultEndpoint.value || "Default endpoint"
+    : "Type or pick a saved endpoint",
+);
+
+const endpointInputValue = computed(() =>
+  endpointMode.value === "default" ? "" : customEndpoint.value,
+);
+
 function loadModels() { emit("loadModels"); }
 function loadOllamaModels() { emit("loadOllamaModels"); }
-function selectSavedEndpoint() {
-  if (selectedSavedEndpoint.value) {
-    emit("selectSavedEndpoint", selectedSavedEndpoint.value);
-  }
-}
 function saveCurrentEndpoint() { emit("saveCurrentEndpoint"); }
 function removeSelectedEndpoint() { emit("removeSelectedEndpoint"); }
 function newSession() { emit("newSession"); }
 function run() { emit("run"); }
 function stopLocal() { emit("stopLocal"); }
 function clearEvents() { emit("clearEvents"); }
+
+function onEndpointInput(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (endpointMode.value !== "custom") {
+    endpointMode.value = "custom";
+  }
+  customEndpoint.value = target.value;
+  if (!target.value) {
+    selectedSavedEndpoint.value = "";
+  }
+}
+
+function toggleEndpointDropdown() {
+  if (endpointMode.value !== "custom") {
+    endpointMode.value = "custom";
+  }
+  endpointDropdownOpen.value = !endpointDropdownOpen.value;
+  if (endpointDropdownOpen.value) {
+    endpointInput.value?.focus();
+  }
+}
+
+function chooseSavedEndpoint(endpoint: string) {
+  endpointMode.value = "custom";
+  customEndpoint.value = endpoint;
+  selectedSavedEndpoint.value = endpoint;
+  endpointDropdownOpen.value = false;
+}
+
+function onEndpointFocusOut(event: FocusEvent) {
+  const next = event.relatedTarget as Node | null;
+  if (!endpointPicker.value || (next && endpointPicker.value.contains(next))) {
+    return;
+  }
+  endpointDropdownOpen.value = false;
+}
 </script>
 
 <style scoped>
@@ -366,5 +421,57 @@ function clearEvents() { emit("clearEvents"); }
 
 .secondaryActions .btn.secondary:hover:not(:disabled) {
   opacity: 0.9;
+}
+
+.endpointPicker {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.endpointPicker .input {
+  flex: 1;
+}
+
+.iconButton {
+  width: 34px;
+  padding: 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+.endpointDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+  z-index: 10;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.dropdownItem {
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+}
+
+.dropdownItem:hover {
+  background: rgba(122, 162, 247, 0.12);
+  border-color: rgba(122, 162, 247, 0.3);
+}
+
+.dropdownEmpty {
+  padding: 6px 8px;
 }
 </style>
