@@ -1,11 +1,14 @@
 import asyncio
 import json
+import logging
 from typing import AsyncIterator
 
 import httpx
 
 from app.codex.driver import CodexDriver, CodexEvent
 from app.codex.models import ModelSpec
+
+LOGGER = logging.getLogger(__name__)
 
 
 class OllamaDriver(CodexDriver):
@@ -29,6 +32,14 @@ class OllamaDriver(CodexDriver):
 
         async def run() -> None:
             try:
+                LOGGER.info(
+                    "Ollama session start",
+                    extra={
+                        "session_id": session_id,
+                        "model": self.model.name,
+                        "endpoint": self.model.endpoint,
+                    },
+                )
                 await queue.put({"type": "plan", "content": f"Goal: {config['goal']}"})
 
                 payload = {
@@ -36,8 +47,19 @@ class OllamaDriver(CodexDriver):
                     "messages": [{"role": "user", "content": config["goal"]}],
                     "stream": True,
                 }
+                LOGGER.debug(
+                    "Ollama payload",
+                    extra={"session_id": session_id, "payload": payload},
+                )
 
                 async with self.client.stream("POST", "/api/chat", json=payload) as resp:
+                    LOGGER.info(
+                        "Ollama response status",
+                        extra={
+                            "session_id": session_id,
+                            "status_code": resp.status_code,
+                        },
+                    )
                     resp.raise_for_status()
                     async for line in resp.aiter_lines():
                         if not line:
@@ -62,6 +84,10 @@ class OllamaDriver(CodexDriver):
             except asyncio.CancelledError:
                 raise
             except Exception as e:
+                LOGGER.exception(
+                    "Ollama session error",
+                    extra={"session_id": session_id},
+                )
                 await queue.put({"type": "error", "content": str(e)})
             finally:
                 await self.client.aclose()

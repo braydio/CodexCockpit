@@ -31,6 +31,10 @@ class CodexSDKDriver(CodexDriver):
 
         async def run():
             try:
+                LOGGER.info(
+                    "Codex session start",
+                    extra={"session_id": session_id, "model": config.get("model")},
+                )
                 assembler = ContextAssembler(config.get("workspace", "."))
                 context = assembler.assemble(config["goal"])
                 prompt = self._build_prompt(

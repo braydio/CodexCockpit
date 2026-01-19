@@ -11,20 +11,7 @@
         </div>
       </div>
 
-      <div class="panel-body">
-        <div class="field">
-          <div class="label">Model</div>
-          <select class="select" v-model="selectedModel" :disabled="busyModels">
-            <option v-for="m in models" :key="m.name" :value="m.name">
-              {{ m.name }}{{ m.type ? ` (${m.type})` : "" }}
-            </option>
-          </select>
-          <div class="small mono muted" v-if="selectedModelInfo">
-            ctx={{ selectedModelInfo.context ?? "?" }} • tools={{
-              selectedModelInfo.tools ?? false
-            }}
-          </div>
-        </div>
+      
 
         <div class="field">
           <div class="label">Workspace</div>
@@ -109,6 +96,21 @@
         </div>
         <div class="codeblock mono" v-if="ollamaModels.length">
           {{ ollamaModels.join("\n") }}
+        </div>
+
+        <div class="panel-body">
+          <div class="field">
+            <div class="label">Model</div>
+            <select class="select" v-model="selectedModel" :disabled="busyModels">
+              <option v-for="m in models" :key="m.name" :value="m.name">
+                {{ m.name }}{{ m.type ? ` (${m.type})` : "" }}
+              </option>
+            </select>
+          <div class="small mono muted" v-if="selectedModelInfo">
+            ctx={{ selectedModelInfo.context ?? "?" }} • tools={{
+              selectedModelInfo.tools ?? false
+            }}
+          </div>
         </div>
 
         <div class="field">
