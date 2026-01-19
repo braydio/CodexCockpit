@@ -40,7 +40,8 @@ consistent terminal cockpit style:
 - Layout: `.panel`, `.panel-header`, `.panel-body`, `.panel-footer`,
   `.panel-subheader`, `.card`, `.layout-grid`, `.layout-split`, `.stack`.
 - Controls: `.btn`, `.btn.primary`, `.btn.danger`, `.input`, `.select`,
-  `.textarea`.
+  `.textarea`, `.btn.compact`, `.input.compact`, `.select.compact`,
+  `.toggle.compact`, `.toolbar.compact`.
 - Indicators: `.pill`, `.badge`, `.status-dot`, `.progress`.
 - Data views: `.table`, `.diff-viewer`, `.log-stream`, `.timeline`.
 

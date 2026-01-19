@@ -234,6 +234,10 @@ button {
   flex-wrap: wrap;
 }
 
+.toolbar.compact {
+  gap: var(--space-2);
+}
+
 .toolbar-group {
   display: flex;
   align-items: center;
@@ -294,6 +298,12 @@ button {
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.btn.compact {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
 }
 
 .btn.primary {
@@ -363,6 +373,26 @@ button {
     2.5em 100%;
   background-repeat: no-repeat;
   padding-right: 32px;
+}
+
+.input.compact,
+.select.compact,
+.textarea.compact {
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.select.compact {
+  padding-right: 28px;
+  background-position:
+    calc(100% - 12px) calc(50% - 3px),
+    calc(100% - 7px) calc(50% - 3px),
+    100% 0;
+  background-size:
+    4px 4px,
+    4px 4px,
+    2.25em 100%;
 }
 
 .codeblock,
@@ -465,6 +495,11 @@ pre {
   color: var(--muted);
   font-size: 12px;
   user-select: none;
+}
+
+.toggle.compact {
+  gap: var(--space-1);
+  font-size: 11px;
 }
 
 .divider {
