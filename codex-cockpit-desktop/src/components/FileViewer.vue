@@ -7,9 +7,9 @@
       </div>
 
       <div class="right">
-        <span class="pill mono" v-if="filePath">
+        <span class="pill mono file-pill" v-if="filePath" :title="fullPath">
           <span class="dot"></span>
-          {{ filePath }}
+          {{ fileName }}
         </span>
         <button class="btn" @click="reload" :disabled="!filePath || loading">
           Reload
@@ -23,7 +23,10 @@
         <span class="muted"> • </span>
         <span class="muted">lines:</span> {{ lineCount }}
         <span class="muted"> • </span>
-        <span class="muted">abs:</span> {{ fileInfo.abs_path }}
+        <span class="path">
+          <span class="muted">path:</span>
+          <span class="path-value" :title="fullPath">{{ fullPath }}</span>
+        </span>
       </div>
       <div v-if="fileInfo.truncated" class="warn mono small">
         truncated to max_bytes
@@ -70,7 +73,15 @@ function countLines(text?: string | null): number {
 
 const lineCount = computed(() => countLines(fileInfo.value?.text));
 
-// TODO: Add component tests for empty state and metadata rendering when a UI test harness is available.
+const fileName = computed(() => {
+  if (!props.filePath) return "";
+  const segments = props.filePath.split("/");
+  return segments[segments.length - 1] || props.filePath;
+});
+
+const fullPath = computed(() => fileInfo.value?.abs_path || props.filePath);
+
+// TODO: Add component tests for empty state, metadata rendering, and path truncation when a UI test harness is available.
 
 async function reload() {
   error.value = "";
@@ -115,10 +126,31 @@ watch(
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .title {
   font-weight: 800;
+}
+
+.left {
+  min-width: 0;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.file-pill {
+  max-width: min(320px, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .meta {
@@ -126,6 +158,23 @@ watch(
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.path {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.path-value {
+  max-width: min(360px, 60vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 .body {
