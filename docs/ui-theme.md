@@ -47,8 +47,10 @@ consistent terminal cockpit style:
 When adding new UI modules, prefer these utilities over introducing new
 one-off styles.
 
-## Panel Layout Guidance
+## Workflow Sidebar Guidance
 
-Panel headers should focus on primary context and controls (such as buttons or
-selectors). Supplemental context, including selected-path pills, should live in
-the panel body or footer to keep headers compact and scannable.
+The cockpit sidebar uses step-labeled headers to clarify the workflow order.
+Keep the session creation button as the primary call-to-action, and only
+emphasize execution controls once a session exists. Secondary controls (stop
+stream, clear console) should retain reduced visual weight to avoid competing
+with the primary flow.
