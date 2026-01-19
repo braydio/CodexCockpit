@@ -8,6 +8,15 @@
         v-model:selectedModel="selectedModel"
         v-model:workspace="workspace"
         v-model:goal="goal"
+        v-model:endpointMode="endpointMode"
+        v-model:customEndpoint="customEndpoint"
+        v-model:selectedSavedEndpoint="selectedSavedEndpoint"
+        :defaultEndpoint="defaultEndpoint"
+        :effectiveEndpoint="effectiveEndpoint"
+        :savedEndpoints="savedEndpoints"
+        :ollamaModels="ollamaModels"
+        :ollamaStatus="ollamaStatus"
+        :ollamaLoading="ollamaLoading"
         :sessionId="sessionId"
         :canRun="canRun"
         :status="status"
@@ -16,6 +25,10 @@
         @run="run"
         @stopLocal="stopLocal"
         @clearEvents="clearEvents"
+        @loadOllamaModels="loadOllamaModels"
+        @selectSavedEndpoint="selectSavedEndpoint"
+        @saveCurrentEndpoint="saveCurrentEndpoint"
+        @removeSelectedEndpoint="removeSelectedEndpoint"
       />
 
       <div class="content">
@@ -88,6 +101,15 @@ const {
   selectedModel,
   workspace,
   goal,
+  endpointMode,
+  customEndpoint,
+  defaultEndpoint,
+  effectiveEndpoint,
+  savedEndpoints,
+  selectedSavedEndpoint,
+  ollamaModels,
+  ollamaStatus,
+  ollamaLoading,
 
   sessionId,
   canRun,
@@ -100,6 +122,10 @@ const {
   run,
   stopLocal,
   clearEvents,
+  loadOllamaModels,
+  selectSavedEndpoint,
+  saveCurrentEndpoint,
+  removeSelectedEndpoint,
 } = useCockpitSession();
 
 const activeTab = ref<"console" | "workspace">("console");

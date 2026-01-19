@@ -1,4 +1,6 @@
 
+from dataclasses import replace
+
 from app.codex.model_adapters import ModelAdapter, OllamaAdapter
 from app.codex.models import MODEL_REGISTRY, ModelSpec
 from app.codex.codex_sdk import CodexSDKDriver
@@ -17,7 +19,7 @@ def _build_adapter(spec: ModelSpec) -> ModelAdapter:
     raise ValueError(f"Unsupported adapter: {spec.adapter}")
 
 
-def get_driver(model_name: str):
+def get_driver(model_name: str, endpoint_override: str | None = None):
     """Resolve a model name into a configured Codex driver."""
     spec = MODEL_REGISTRY.get(model_name)
     if not spec:
@@ -31,6 +33,8 @@ def get_driver(model_name: str):
         return LocalModelDriver(spec, adapter)
 
     if spec.runtime == "ollama":
+        if endpoint_override:
+            spec = replace(spec, endpoint=endpoint_override)
         return OllamaDriver(spec)
 
     raise ValueError("Invalid model runtime")

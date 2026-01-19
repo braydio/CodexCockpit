@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { apiBase } from "@/lib/api";
 import type { CodexEvent, ModelInfo } from "@/types/codex";
 
@@ -16,6 +16,15 @@ export function useCockpitSession() {
   const selectedModel = ref<string>("codex-default");
   const workspace = ref<string>(".");
   const goal = ref<string>("");
+
+  const endpointMode = ref<"default" | "custom">("default");
+  const customEndpoint = ref<string>("");
+  const savedEndpoints = ref<string[]>([]);
+  const selectedSavedEndpoint = ref<string>("");
+
+  const ollamaModels = ref<string[]>([]);
+  const ollamaStatus = ref<string>("");
+  const ollamaLoading = ref<boolean>(false);
 
   const sessionId = ref<string>("");
   const events = ref<CodexEvent[]>([]);
@@ -48,6 +57,72 @@ export function useCockpitSession() {
     if (status.value === "running") return { text: "Running", kind: "good" };
     return { text: "Idle", kind: "neutral" };
   });
+
+  const selectedModelInfo = computed(() => (
+    models.value.find(m => m.name === selectedModel.value) || null
+  ));
+
+  const defaultEndpoint = computed(() => selectedModelInfo.value?.endpoint || "");
+
+  function normalizeEndpoint(value: string) {
+    return value.trim().replace(/\/+$/, "");
+  }
+
+  const effectiveEndpoint = computed(() => {
+    if (endpointMode.value === "custom") return customEndpoint.value.trim();
+    return defaultEndpoint.value || "";
+  });
+
+  function loadSavedEndpoints() {
+    try {
+      const raw = localStorage.getItem("codex-cockpit.endpoints");
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) {
+        savedEndpoints.value = parsed.filter(item => typeof item === "string");
+      }
+    } catch {
+      savedEndpoints.value = [];
+    }
+  }
+
+  function persistSavedEndpoints() {
+    try {
+      localStorage.setItem("codex-cockpit.endpoints", JSON.stringify(savedEndpoints.value));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function selectSavedEndpoint(value: string) {
+    if (!value) return;
+    endpointMode.value = "custom";
+    customEndpoint.value = value;
+    selectedSavedEndpoint.value = value;
+  }
+
+  function saveCurrentEndpoint() {
+    const candidate = normalizeEndpoint(customEndpoint.value || defaultEndpoint.value || "");
+    if (!candidate) {
+      ollamaStatus.value = "No endpoint to save.";
+      return;
+    }
+    if (!savedEndpoints.value.includes(candidate)) {
+      savedEndpoints.value = [...savedEndpoints.value, candidate];
+      persistSavedEndpoints();
+    }
+    selectedSavedEndpoint.value = candidate;
+  }
+
+  function removeSelectedEndpoint() {
+    const target = selectedSavedEndpoint.value;
+    if (!target) return;
+    savedEndpoints.value = savedEndpoints.value.filter(item => item !== target);
+    persistSavedEndpoints();
+    if (customEndpoint.value === target) {
+      customEndpoint.value = "";
+    }
+    selectedSavedEndpoint.value = "";
+  }
 
   async function loadModels() {
     status.value = "loading-models";
@@ -94,6 +169,7 @@ export function useCockpitSession() {
           goal: goal.value,
           model: selectedModel.value,
           workspace: workspace.value || ".",
+          endpoint: effectiveEndpoint.value || null,
         }),
       });
       if (!res.ok) {
@@ -189,6 +265,50 @@ export function useCockpitSession() {
     events.value = [];
   }
 
+  async function loadOllamaModels() {
+    const endpoint = effectiveEndpoint.value;
+    if (!endpoint) {
+      ollamaStatus.value = "No endpoint configured for Ollama.";
+      return;
+    }
+
+    ollamaLoading.value = true;
+    ollamaStatus.value = "";
+    try {
+      const u = new URL(`${api.value}/models/ollama/tags`);
+      u.searchParams.set("endpoint", endpoint);
+      const res = await fetch(u.toString(), { method: "GET" });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`ollama tags failed: ${res.status} ${res.statusText} ${text}`);
+      }
+      const payload = (await res.json()) as { models?: string[] };
+      ollamaModels.value = payload.models ?? [];
+      ollamaStatus.value = `Found ${ollamaModels.value.length} models.`;
+    } catch (e: any) {
+      ollamaStatus.value = e?.message || String(e);
+    } finally {
+      ollamaLoading.value = false;
+    }
+  }
+
+  loadSavedEndpoints();
+
+  watch(
+    () => customEndpoint.value,
+    (value) => {
+      const normalized = normalizeEndpoint(value);
+      if (normalized !== value) {
+        customEndpoint.value = normalized;
+        return;
+      }
+      if (normalized && savedEndpoints.value.includes(normalized)) {
+        selectedSavedEndpoint.value = normalized;
+      }
+    },
+    { immediate: true }
+  );
+
   return {
     api,
     status,
@@ -199,6 +319,15 @@ export function useCockpitSession() {
     selectedModel,
     workspace,
     goal,
+    endpointMode,
+    customEndpoint,
+    defaultEndpoint,
+    effectiveEndpoint,
+    savedEndpoints,
+    selectedSavedEndpoint,
+    ollamaModels,
+    ollamaStatus,
+    ollamaLoading,
 
     sessionId,
     canRun,
@@ -211,5 +340,9 @@ export function useCockpitSession() {
     run,
     stopLocal,
     clearEvents,
+    loadOllamaModels,
+    selectSavedEndpoint,
+    saveCurrentEndpoint,
+    removeSelectedEndpoint,
   };
 }

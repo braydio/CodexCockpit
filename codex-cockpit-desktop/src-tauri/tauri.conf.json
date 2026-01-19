@@ -7,28 +7,28 @@
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
   "package": {
     "productName": "Codex Cockpit",
     "version": "0.1.0"
   },
-  "tauri",
+  "tauri": {
     "app": {
       "windows": [
         {
           "title": "Codex Cockpit",
           "width": 1200,
           "height": 800,
-	  "resizeable": true,
-	  "fullscreen": false
-	}
+          "resizable": true,
+          "fullscreen": false
+        }
       ],
       "security": {
         "csp": null
       }
-    },
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",

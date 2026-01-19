@@ -30,7 +30,7 @@ def _prune_finished_locked(now: float) -> None:
 
 
 async def register(session_id: str, config: dict) -> None:
-    driver = get_model_driver(config["model"])
+    driver = get_model_driver(config["model"], config.get("endpoint"))
     now = _now()
 
     async with _lock:

@@ -24,6 +24,53 @@
       </div>
 
       <div class="field">
+        <div class="label">Ollama Endpoint</div>
+        <div class="row">
+          <label class="radio">
+            <input type="radio" value="default" v-model="endpointMode" />
+            <span>Default</span>
+          </label>
+          <label class="radio">
+            <input type="radio" value="custom" v-model="endpointMode" />
+            <span>Custom</span>
+          </label>
+        </div>
+        <input
+          class="input mono"
+          v-model="customEndpoint"
+          :disabled="endpointMode === 'default'"
+          placeholder="http://localhost:11434"
+        />
+        <div class="small mono muted">default: {{ defaultEndpoint || "—" }}</div>
+        <div class="small muted" v-if="effectiveEndpoint">using: {{ effectiveEndpoint }}</div>
+      </div>
+
+      <div class="row">
+        <button class="btn" @click="loadOllamaModels" :disabled="ollamaLoading">
+          Fetch Ollama Models
+        </button>
+      </div>
+      <div class="field">
+        <div class="label">Saved Endpoints</div>
+        <select class="select mono" v-model="selectedSavedEndpoint" @change="selectSavedEndpoint">
+          <option value="">Select saved…</option>
+          <option v-for="endpoint in savedEndpoints" :key="endpoint" :value="endpoint">
+            {{ endpoint }}
+          </option>
+        </select>
+        <div class="row">
+          <button class="btn" @click="saveCurrentEndpoint">Save Current</button>
+          <button class="btn" @click="removeSelectedEndpoint" :disabled="!selectedSavedEndpoint">
+            Remove
+          </button>
+        </div>
+      </div>
+      <div class="small mono muted" v-if="ollamaStatus">{{ ollamaStatus }}</div>
+      <div class="codeblock mono" v-if="ollamaModels.length">
+        {{ ollamaModels.join("\n") }}
+      </div>
+
+      <div class="field">
         <div class="label">Goal</div>
         <textarea
           class="textarea"
@@ -91,6 +138,15 @@ const props = defineProps<{
   selectedModel: string;
   workspace: string;
   goal: string;
+  endpointMode: "default" | "custom";
+  customEndpoint: string;
+  selectedSavedEndpoint: string;
+  defaultEndpoint: string;
+  effectiveEndpoint: string;
+  savedEndpoints: string[];
+  ollamaModels: string[];
+  ollamaStatus: string;
+  ollamaLoading: boolean;
   sessionId: string;
   canRun: boolean;
   status: string;
@@ -100,7 +156,14 @@ const emit = defineEmits<{
   (e: "update:selectedModel", v: string): void;
   (e: "update:workspace", v: string): void;
   (e: "update:goal", v: string): void;
+  (e: "update:endpointMode", v: "default" | "custom"): void;
+  (e: "update:customEndpoint", v: string): void;
+  (e: "update:selectedSavedEndpoint", v: string): void;
   (e: "loadModels"): void;
+  (e: "loadOllamaModels"): void;
+  (e: "selectSavedEndpoint", v: string): void;
+  (e: "saveCurrentEndpoint"): void;
+  (e: "removeSelectedEndpoint"): void;
   (e: "newSession"): void;
   (e: "run"): void;
   (e: "stopLocal"): void;
@@ -122,6 +185,21 @@ const goal = computed({
   set: (v: string) => emit("update:goal", v),
 });
 
+const endpointMode = computed({
+  get: () => props.endpointMode,
+  set: (v: "default" | "custom") => emit("update:endpointMode", v),
+});
+
+const customEndpoint = computed({
+  get: () => props.customEndpoint,
+  set: (v: string) => emit("update:customEndpoint", v),
+});
+
+const selectedSavedEndpoint = computed({
+  get: () => props.selectedSavedEndpoint,
+  set: (v: string) => emit("update:selectedSavedEndpoint", v),
+});
+
 const busyModels = computed(() => props.status === "loading-models");
 const busyCreate = computed(() => props.status === "creating-session");
 const busyRun = computed(() => props.status === "running");
@@ -130,21 +208,19 @@ const selectedModelInfo = computed(
   () => props.models.find((m) => m.name === props.selectedModel) || null,
 );
 
-function loadModels() {
-  emit("loadModels");
+function loadModels() { emit("loadModels"); }
+function loadOllamaModels() { emit("loadOllamaModels"); }
+function selectSavedEndpoint() {
+  if (selectedSavedEndpoint.value) {
+    emit("selectSavedEndpoint", selectedSavedEndpoint.value);
+  }
 }
-function newSession() {
-  emit("newSession");
-}
-function run() {
-  emit("run");
-}
-function stopLocal() {
-  emit("stopLocal");
-}
-function clearEvents() {
-  emit("clearEvents");
-}
+function saveCurrentEndpoint() { emit("saveCurrentEndpoint"); }
+function removeSelectedEndpoint() { emit("removeSelectedEndpoint"); }
+function newSession() { emit("newSession"); }
+function run() { emit("run"); }
+function stopLocal() { emit("stopLocal"); }
+function clearEvents() { emit("clearEvents"); }
 </script>
 
 <style scoped>
@@ -152,6 +228,33 @@ function clearEvents() {
   height: 100%;
   padding: 14px;
   overflow: auto;
+}
+
+.section {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .row .btn {

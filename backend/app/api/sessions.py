@@ -12,6 +12,7 @@ class CreateSessionRequest(BaseModel):
     goal: str
     model: str | None = None
     workspace: str | None = None
+    endpoint: str | None = None
 
 @router.post("/")
 async def create_session(req: CreateSessionRequest):
@@ -21,6 +22,7 @@ async def create_session(req: CreateSessionRequest):
         "goal": req.goal,
         "model": req.model or "codex-default",
         "workspace": req.workspace or ".",
+        "endpoint": req.endpoint,
     }
 
     try:
