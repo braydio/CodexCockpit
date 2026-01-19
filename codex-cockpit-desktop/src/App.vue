@@ -60,7 +60,7 @@
             <WorkspaceTree
               :workspace="workspace"
               :selectedPath="selectedFile"
-              @open-file="(p) => (selectedFile = p)"
+              @open-file="(p: string) => (selectedFile = p)"
               @tree-loaded="onTreeLoaded"
             />
             <FileViewer :workspace="workspace" :filePath="selectedFile" />
