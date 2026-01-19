@@ -60,7 +60,7 @@
             <WorkspaceTree
               :workspace="workspace"
               :selectedPath="selectedFile"
-              @open-file="(p) => (selectedFile = p)"
+              @open-file="handleOpenFile"
               @tree-loaded="onTreeLoaded"
             />
             <FileViewer :workspace="workspace" :filePath="selectedFile" />
@@ -130,6 +130,13 @@ const {
 
 const activeTab = ref<"console" | "workspace">("console");
 const selectedFile = ref<string>("");
+
+/**
+ * Track the active file selected in the workspace tree.
+ */
+function handleOpenFile(path: string) {
+  selectedFile.value = path;
+}
 
 function onTreeLoaded(_payload: { serverRoot: string }) {
   // placeholder hook; later we can show serverRoot in UI or status bar

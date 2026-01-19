@@ -1,7 +1,7 @@
 <template>
   <aside class="sidebar panel">
     <div class="section card">
-      <div class="sectionTitle">Session</div>
+      <div class="sectionTitle">1. Session</div>
 
       <div class="field">
         <div class="label">Model</div>
@@ -88,7 +88,9 @@
         </button>
       </div>
 
-      <div class="hr"></div>
+      <div class="hr stepDivider"></div>
+
+      <div class="sectionTitle subsection">2. Execution</div>
 
       <div class="field">
         <div class="label">Session ID</div>
@@ -96,16 +98,29 @@
       </div>
 
       <div class="row align-center">
-        <button class="btn primary" @click="run" :disabled="!canRun || busyRun">
-          Run
-        </button>
-        <button class="btn danger" @click="stopLocal" :disabled="!busyRun">
-          Stop (Local)
+        <button
+          class="btn"
+          :class="{ primary: hasSession }"
+          @click="run"
+          :disabled="!canRun || busyRun"
+        >
+          {{ hasSession ? "Run" : "Run (create session first)" }}
         </button>
       </div>
 
-      <div class="row align-center">
-        <button class="btn" @click="clearEvents">Clear Console</button>
+      <div class="small muted runHint" v-if="!hasSession">
+        Create a session to enable execution.
+      </div>
+      <div class="small muted runHint" v-else>Execution streams to the console below.</div>
+
+      <div class="secondaryActions">
+        <div class="small muted">Secondary actions</div>
+        <div class="row align-center">
+          <button class="btn danger secondary" @click="stopLocal" :disabled="!busyRun">
+            Stop (Local)
+          </button>
+          <button class="btn secondary" @click="clearEvents">Clear Console</button>
+        </div>
       </div>
 
       <div class="small muted">
@@ -203,6 +218,7 @@ const selectedSavedEndpoint = computed({
 const busyModels = computed(() => props.status === "loading-models");
 const busyCreate = computed(() => props.status === "creating-session");
 const busyRun = computed(() => props.status === "running");
+const hasSession = computed(() => Boolean(props.sessionId));
 
 const selectedModelInfo = computed(
   () => props.models.find((m) => m.name === props.selectedModel) || null,
@@ -243,6 +259,12 @@ function clearEvents() { emit("clearEvents"); }
   margin-bottom: 10px;
 }
 
+.sectionTitle.subsection {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .row {
   display: flex;
   gap: 10px;
@@ -263,5 +285,25 @@ function clearEvents() { emit("clearEvents"); }
 
 .section.card {
   margin-bottom: 12px;
+}
+
+.stepDivider {
+  margin: 16px 0 12px;
+}
+
+.runHint {
+  margin-top: 6px;
+}
+
+.secondaryActions {
+  margin-top: 14px;
+}
+
+.secondaryActions .btn.secondary {
+  opacity: 0.72;
+}
+
+.secondaryActions .btn.secondary:hover:not(:disabled) {
+  opacity: 0.9;
 }
 </style>

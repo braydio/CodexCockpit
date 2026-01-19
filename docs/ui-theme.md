@@ -46,3 +46,11 @@ consistent terminal cockpit style:
 
 When adding new UI modules, prefer these utilities over introducing new
 one-off styles.
+
+## Workflow Sidebar Guidance
+
+The cockpit sidebar uses step-labeled headers to clarify the workflow order.
+Keep the session creation button as the primary call-to-action, and only
+emphasize execution controls once a session exists. Secondary controls (stop
+stream, clear console) should retain reduced visual weight to avoid competing
+with the primary flow.
