@@ -1,143 +1,204 @@
 <template>
   <aside class="sidebar panel">
-    <div class="section card">
-      <div class="sectionTitle">1. Session</div>
-
-      <div class="field">
-        <div class="label">Model</div>
-        <select class="select" v-model="selectedModel" :disabled="busyModels">
-          <option v-for="m in models" :key="m.name" :value="m.name">
-            {{ m.name }}{{ m.type ? ` (${m.type})` : "" }}
-          </option>
-        </select>
-        <div class="small mono muted" v-if="selectedModelInfo">
-          ctx={{ selectedModelInfo.context ?? "?" }} • tools={{
-            selectedModelInfo.tools ?? false
-          }}
+    <!-- SESSION PANEL -->
+    <div class="section card panel">
+      <div class="panel-header">
+        <div>
+          <div class="sectionTitle">1. Session</div>
+          <div class="small muted">
+            Configure the model, workspace, and goal before creating a session.
+          </div>
         </div>
       </div>
 
-      <div class="field">
-        <div class="label">Workspace</div>
-        <input class="input mono" v-model="workspace" placeholder="." />
-        <div class="small muted">Path is interpreted by the backend.</div>
-      </div>
-
-      <div class="field">
-        <div class="label">Ollama Endpoint</div>
-        <div class="row">
-          <label class="radio">
-            <input type="radio" value="default" v-model="endpointMode" />
-            <span>Default</span>
-          </label>
-          <label class="radio">
-            <input type="radio" value="custom" v-model="endpointMode" />
-            <span>Custom</span>
-          </label>
+      <div class="panel-body">
+        <div class="field">
+          <div class="label">Model</div>
+          <select class="select" v-model="selectedModel" :disabled="busyModels">
+            <option v-for="m in models" :key="m.name" :value="m.name">
+              {{ m.name }}{{ m.type ? ` (${m.type})` : "" }}
+            </option>
+          </select>
+          <div class="small mono muted" v-if="selectedModelInfo">
+            ctx={{ selectedModelInfo.context ?? "?" }} • tools={{
+              selectedModelInfo.tools ?? false
+            }}
+          </div>
         </div>
-        <input
-          class="input mono"
-          v-model="customEndpoint"
-          :disabled="endpointMode === 'default'"
-          placeholder="http://localhost:11434"
-        />
-        <div class="small mono muted">default: {{ defaultEndpoint || "—" }}</div>
-        <div class="small muted" v-if="effectiveEndpoint">using: {{ effectiveEndpoint }}</div>
-      </div>
 
-      <div class="row">
-        <button class="btn" @click="loadOllamaModels" :disabled="ollamaLoading">
-          Fetch Ollama Models
-        </button>
-      </div>
-      <div class="field">
-        <div class="label">Saved Endpoints</div>
-        <select class="select mono" v-model="selectedSavedEndpoint" @change="selectSavedEndpoint">
-          <option value="">Select saved…</option>
-          <option v-for="endpoint in savedEndpoints" :key="endpoint" :value="endpoint">
-            {{ endpoint }}
-          </option>
-        </select>
+        <div class="field">
+          <div class="label">Workspace</div>
+          <input class="input mono" v-model="workspace" placeholder="." />
+          <div class="small muted">Path is interpreted by the backend.</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Ollama Endpoint</div>
+          <div class="row">
+            <label class="radio">
+              <input type="radio" value="default" v-model="endpointMode" />
+              <span>Default</span>
+            </label>
+            <label class="radio">
+              <input type="radio" value="custom" v-model="endpointMode" />
+              <span>Custom</span>
+            </label>
+          </div>
+          <input
+            class="input mono"
+            v-model="customEndpoint"
+            :disabled="endpointMode === 'default'"
+            placeholder="http://localhost:11434"
+          />
+          <div class="small mono muted">
+            default: {{ defaultEndpoint || "—" }}
+          </div>
+          <div class="small muted" v-if="effectiveEndpoint">
+            using: {{ effectiveEndpoint }}
+          </div>
+        </div>
+
         <div class="row">
-          <button class="btn" @click="saveCurrentEndpoint">Save Current</button>
-          <button class="btn" @click="removeSelectedEndpoint" :disabled="!selectedSavedEndpoint">
-            Remove
+          <button class="btn" @click="loadOllamaModels" :disabled="ollamaLoading">
+            Fetch Ollama Models
           </button>
         </div>
-      </div>
-      <div class="small mono muted" v-if="ollamaStatus">{{ ollamaStatus }}</div>
-      <div class="codeblock mono" v-if="ollamaModels.length">
-        {{ ollamaModels.join("\n") }}
-      </div>
 
-      <div class="field">
-        <div class="label">Goal</div>
-        <textarea
-          class="textarea"
-          v-model="goal"
-          placeholder="What should the agent do?"
-        />
-      </div>
+        <div class="field">
+          <div class="label">Saved Endpoints</div>
+          <select
+            class="select mono"
+            v-model="selectedSavedEndpoint"
+            @change="selectSavedEndpoint"
+          >
+            <option value="">Select saved…</option>
+            <option
+              v-for="endpoint in savedEndpoints"
+              :key="endpoint"
+              :value="endpoint"
+            >
+              {{ endpoint }}
+            </option>
+          </select>
+          <div class="row">
+            <button class="btn" @click="saveCurrentEndpoint">Save Current</button>
+            <button
+              class="btn"
+              @click="removeSelectedEndpoint"
+              :disabled="!selectedSavedEndpoint"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
 
-      <div class="row align-center">
-        <button class="btn" @click="loadModels" :disabled="busyModels">
-          Reload Models
-        </button>
-        <button class="btn primary" @click="newSession" :disabled="busyCreate">
-          Create Session
-        </button>
-      </div>
+        <div class="small mono muted" v-if="ollamaStatus">
+          {{ ollamaStatus }}
+        </div>
+        <div class="codeblock mono" v-if="ollamaModels.length">
+          {{ ollamaModels.join("\n") }}
+        </div>
 
-      <div class="hr stepDivider"></div>
+        <div class="field">
+          <div class="label">Goal</div>
+          <textarea
+            class="textarea"
+            v-model="goal"
+            placeholder="What should the agent do?"
+          />
+        </div>
 
-      <div class="sectionTitle subsection">2. Execution</div>
-
-      <div class="field">
-        <div class="label">Session ID</div>
-        <div class="codeblock mono">{{ sessionId || "—" }}</div>
-      </div>
-
-      <div class="row align-center">
-        <button
-          class="btn"
-          :class="{ primary: hasSession }"
-          @click="run"
-          :disabled="!canRun || busyRun"
-        >
-          {{ hasSession ? "Run" : "Run (create session first)" }}
-        </button>
-      </div>
-
-      <div class="small muted runHint" v-if="!hasSession">
-        Create a session to enable execution.
-      </div>
-      <div class="small muted runHint" v-else>Execution streams to the console below.</div>
-
-      <div class="secondaryActions">
-        <div class="small muted">Secondary actions</div>
         <div class="row align-center">
-          <button class="btn danger secondary" @click="stopLocal" :disabled="!busyRun">
-            Stop (Local)
+          <button class="btn" @click="loadModels" :disabled="busyModels">
+            Reload Models
           </button>
-          <button class="btn secondary" @click="clearEvents">Clear Console</button>
+          <button class="btn primary" @click="newSession" :disabled="busyCreate">
+            Create Session
+          </button>
         </div>
-      </div>
 
-      <div class="small muted">
-        Stop(Local) only closes the stream. Backend stop is available at `POST
-        /sessions/{id}/stop`.
+        <div class="hr stepDivider"></div>
+
+        <div class="field">
+          <div class="label">Session ID</div>
+          <div class="codeblock mono">{{ sessionId || "—" }}</div>
+        </div>
       </div>
     </div>
 
-    <div class="section card">
-      <div class="sectionTitle">Notes</div>
-      <div class="small muted">
-        Next steps on the roadmap:
-        <div class="mono" style="margin-top: 8px">
-          B) UI layout ✅<br />
-          C) Diff + workspace viewer<br />
-          D) Model routing ✅<br />
-          E) Tauri desktop ✅
+    <!-- EXECUTION PANEL -->
+    <div class="section card panel">
+      <div class="panel-header">
+        <div>
+          <div class="sectionTitle">2. Execution</div>
+          <div class="small muted">
+            Run the active session, stop the local stream, or clear console output.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="row align-center">
+          <button
+            class="btn"
+            :class="{ primary: hasSession }"
+            @click="run"
+            :disabled="!canRun || busyRun"
+          >
+            {{ hasSession ? "Run" : "Run (create session first)" }}
+          </button>
+          <button class="btn danger" @click="stopLocal" :disabled="!busyRun">
+            Stop (Local)
+          </button>
+        </div>
+
+        <div class="small muted runHint" v-if="!hasSession">
+          Create a session to enable execution.
+        </div>
+        <div class="small muted runHint" v-else>
+          Execution streams to the console below.
+        </div>
+
+        <div class="secondaryActions">
+          <div class="small muted">Secondary actions</div>
+          <div class="row align-center">
+            <button
+              class="btn danger secondary"
+              @click="stopLocal"
+              :disabled="!busyRun"
+            >
+              Stop (Local)
+            </button>
+            <button class="btn secondary" @click="clearEvents">
+              Clear Console
+            </button>
+          </div>
+        </div>
+
+        <div class="small muted">
+          Stop(Local) only closes the stream. Backend stop is available at
+          <code>POST /sessions/{id}/stop</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT PANEL -->
+    <div class="section card panel">
+      <div class="panel-header">
+        <div>
+          <div class="sectionTitle">About / Roadmap</div>
+          <div class="small muted">Upcoming focus areas for the cockpit.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="small muted">
+          Next steps on the roadmap:
+          <div class="mono" style="margin-top: 8px">
+            B) UI layout ✅<br />
+            C) Diff + workspace viewer<br />
+            D) Model routing ✅<br />
+            E) Tauri desktop ✅
+          </div>
         </div>
       </div>
     </div>
