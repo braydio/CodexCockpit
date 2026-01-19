@@ -124,12 +124,24 @@ export function useCockpitSession() {
     selectedSavedEndpoint.value = "";
   }
 
+  function applyModels(list: ModelInfo[]) {
+    models.value = list;
+    if (!models.value.find((m) => m.name === selectedModel.value)) {
+      selectedModel.value = models.value[0]?.name || "";
+    }
+  }
+
   async function loadModels() {
     status.value = "loading-models";
     statusDetail.value = "";
 
     try {
-      const res = await fetch(`${api.value}/models/`, { method: "GET" });
+      if (endpointMode.value === "custom") {
+        await loadOllamaModels();
+        return;
+      }
+
+      const res = await fetch(`${api.value}/models/openai`, { method: "GET" });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         throw new Error(
@@ -137,13 +149,7 @@ export function useCockpitSession() {
         );
       }
       const payload = (await res.json()) as { models?: ModelInfo[] };
-      models.value = payload.models ?? [];
-      if (
-        !models.value.find((m) => m.name === selectedModel.value) &&
-        models.value.length > 0
-      ) {
-        selectedModel.value = models.value[0].name;
-      }
+      applyModels(payload.models ?? []);
     } catch (e: any) {
       statusDetail.value = e?.message || String(e);
       pushEvent({
@@ -269,6 +275,7 @@ export function useCockpitSession() {
     const endpoint = effectiveEndpoint.value;
     if (!endpoint) {
       ollamaStatus.value = "No endpoint configured for Ollama.";
+      applyModels([]);
       return;
     }
 
@@ -284,6 +291,9 @@ export function useCockpitSession() {
       }
       const payload = (await res.json()) as { models?: string[] };
       ollamaModels.value = payload.models ?? [];
+      applyModels(
+        ollamaModels.value.map((name) => ({ name, type: "ollama", runtime: "ollama" })),
+      );
       ollamaStatus.value = `Found ${ollamaModels.value.length} models.`;
     } catch (e: any) {
       ollamaStatus.value = e?.message || String(e);
@@ -307,6 +317,13 @@ export function useCockpitSession() {
       }
     },
     { immediate: true }
+  );
+
+  watch(
+    () => endpointMode.value,
+    () => {
+      void loadModels();
+    },
   );
 
   return {

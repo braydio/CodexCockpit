@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, Query
 import httpx
+from openai import AsyncOpenAI
 
 from app.codex.models import MODEL_REGISTRY, ModelSpec
 
@@ -58,3 +59,29 @@ async def list_ollama_tags(
         if isinstance(m, dict) and m.get("name")
     ]
     return {"endpoint": base, "models": models}
+
+
+@router.get("/openai")
+async def list_openai_models():
+    """List available OpenAI models for Codex sessions."""
+    client = AsyncOpenAI()
+    try:
+        response = await client.models.list()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"openai models error: {exc}") from exc
+
+    models = sorted(
+        [
+            {
+                "name": model.id,
+                "type": "codex",
+                "runtime": "codex",
+                "endpoint": None,
+                "tools": True,
+            }
+            for model in response.data
+            if getattr(model, "id", None)
+        ],
+        key=lambda item: item["name"],
+    )
+    return {"models": models}

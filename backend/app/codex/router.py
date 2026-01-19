@@ -23,7 +23,28 @@ def get_driver(model_name: str, endpoint_override: str | None = None):
     """Resolve a model name into a configured Codex driver."""
     spec = MODEL_REGISTRY.get(model_name)
     if not spec:
-        raise ValueError(f"Unknown model: {model_name}")
+        if endpoint_override:
+            spec = ModelSpec(
+                name=model_name,
+                runtime="ollama",
+                endpoint=endpoint_override,
+                adapter=None,
+                executable_path=None,
+                timeout_s=None,
+                context=32768,
+                tools=False,
+            )
+        else:
+            spec = ModelSpec(
+                name=model_name,
+                runtime="codex",
+                endpoint=None,
+                adapter=None,
+                executable_path=None,
+                timeout_s=None,
+                context=128000,
+                tools=True,
+            )
 
     if spec.runtime == "codex":
         return CodexSDKDriver()

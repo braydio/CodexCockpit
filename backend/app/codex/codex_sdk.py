@@ -45,7 +45,7 @@ class CodexSDKDriver(CodexDriver):
                 })
 
                 response = await self.client.responses.create(
-                    model="gpt-4.1-mini",  # placeholder Codex-capable model
+                    model=config.get("model") or "gpt-4.1-mini",
                     input=[
                         {
                             "role": "user",

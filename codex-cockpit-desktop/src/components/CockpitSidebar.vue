@@ -59,7 +59,8 @@
               :disabled="endpointMode === 'default' || !savedEndpoints.length"
               @click="toggleEndpointDropdown"
             >
-              v
+            ↓
+
             </button>
             <div
               v-if="endpointMode === 'custom' && endpointDropdownOpen"
@@ -285,6 +286,8 @@ const selectedSavedEndpoint = computed({
   get: () => props.selectedSavedEndpoint,
   set: (v: string) => emit("update:selectedSavedEndpoint", v),
 });
+
+const defaultEndpoint = computed(() => props.defaultEndpoint);
 
 const endpointDropdownOpen = ref(false);
 const endpointPicker = ref<HTMLElement | null>(null);
