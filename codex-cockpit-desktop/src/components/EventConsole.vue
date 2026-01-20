@@ -112,10 +112,24 @@ const autoscroll = computed({
   set: (v: boolean) => emit("update:autoscroll", v),
 });
 
+const normalizedEvents = computed(() => {
+  const merged: CodexEvent[] = [];
+  for (const event of props.events) {
+    const last = merged[merged.length - 1];
+    if (last && last.type === "thought" && event.type === "thought") {
+      last.content = `${last.content ?? ""}${event.content ?? ""}`;
+      last.ts = event.ts ?? last.ts;
+      continue;
+    }
+    merged.push({ ...event });
+  }
+  return merged;
+});
+
 const filtered = computed(() => {
   const filterValue = typeFilter.value;
   const query = contentFilter.value.trim().toLowerCase();
-  return props.events.filter((event) => {
+  return normalizedEvents.value.filter((event) => {
     if (filterValue !== "all" && event.type !== filterValue) return false;
     if (!query) return true;
     return matchesContentFilter(event.content, query);
@@ -214,7 +228,7 @@ async function scrollToBottom() {
 }
 
 watch(
-  () => props.events.length,
+  () => normalizedEvents.value.length,
   async () => {
     if (props.autoscroll) await scrollToBottom();
   },

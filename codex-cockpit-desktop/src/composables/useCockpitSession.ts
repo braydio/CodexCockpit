@@ -31,6 +31,7 @@ export function useCockpitSession() {
   const autoscroll = ref<boolean>(true);
 
   let source: EventSource | null = null;
+  let streamFinished = false;
 
   function pushEvent(e: Omit<CodexEvent, "ts"> & { ts?: number }) {
     events.value.push({ ...e, ts: e.ts ?? Date.now() });
@@ -41,6 +42,7 @@ export function useCockpitSession() {
       source.close();
       source = null;
     }
+    streamFinished = false;
   }
 
   const canRun = computed(() => {
@@ -223,11 +225,13 @@ export function useCockpitSession() {
       source = new EventSource(
         `${api.value}/sessions/${encodeURIComponent(sessionId.value)}/events`,
       );
+      streamFinished = false;
       source.onmessage = (ev) => {
         try {
           const data = JSON.parse(ev.data) as CodexEvent;
           pushEvent({ ...data, ts: Date.now() });
           if (["final", "error", "cancelled"].includes(data.type)) {
+            streamFinished = true;
             closeStream();
             status.value = "idle";
           }
@@ -239,6 +243,10 @@ export function useCockpitSession() {
         }
       };
       source.onerror = () => {
+        if (streamFinished) {
+          closeStream();
+          return;
+        }
         pushEvent({ type: "system", content: "event stream error" });
         closeStream();
         status.value = "idle";
