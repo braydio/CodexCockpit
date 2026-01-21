@@ -134,6 +134,7 @@ watch(
 }
 
 .left {
+  flex: 1 1 240px;
   min-width: 0;
 }
 
@@ -143,14 +144,17 @@ watch(
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  flex: 1 1 240px;
   min-width: 0;
 }
 
 .file-pill {
+  flex: 1 1 auto;
   max-width: min(320px, 100%);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .meta {
@@ -169,7 +173,7 @@ watch(
 }
 
 .path-value {
-  max-width: min(360px, 60vw);
+  max-width: min(420px, 70vw);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -218,5 +222,16 @@ watch(
 
 .warn {
   color: var(--warn);
+}
+
+@media (max-width: 720px) {
+  .right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .file-pill {
+    max-width: 100%;
+  }
 }
 </style>
