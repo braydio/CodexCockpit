@@ -15,6 +15,9 @@
         <option value="system">system</option>
         <option value="dark">dark</option>
         <option value="light">light</option>
+        <option value="gruvbox">gruvbox</option>
+        <option value="dracula">dracula</option>
+        <option value="nord">nord</option>
       </select>
     </div>
   </header>
@@ -27,12 +30,13 @@ defineProps<{
   api: string;
 }>();
 
-type ThemeMode = "system" | "dark" | "light";
+type ThemeMode = "system" | "dark" | "light" | "gruvbox" | "dracula" | "nord";
 
 const theme = ref<ThemeMode>("system");
 
 /**
  * Update the document theme attribute so global styles can respond.
+ * Custom themes are stored as explicit data-theme values.
  */
 function setRootTheme(mode: ThemeMode) {
   const root = document.documentElement;
