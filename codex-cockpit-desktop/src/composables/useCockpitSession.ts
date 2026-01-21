@@ -33,6 +33,9 @@ export function useCockpitSession() {
 
   let source: EventSource | null = null;
   let streamFinished = false;
+  let streamStartedAt = 0;
+  let lastEventAt = 0;
+  let streamEventCount = 0;
 
   function pushEvent(e: Omit<CodexEvent, "ts"> & { ts?: number }) {
     events.value.push({ ...e, ts: e.ts ?? Date.now() });
@@ -44,6 +47,23 @@ export function useCockpitSession() {
       source = null;
     }
     streamFinished = false;
+    streamStartedAt = 0;
+    lastEventAt = 0;
+    streamEventCount = 0;
+  }
+
+  function streamDiagnosticsLabel() {
+    const ageMs = streamStartedAt ? Date.now() - streamStartedAt : 0;
+    const idleMs = lastEventAt ? Date.now() - lastEventAt : null;
+    const ready = source?.readyState ?? -1;
+    const parts = [
+      `session=${sessionId.value || "?"}`,
+      `readyState=${ready}`,
+      `events=${streamEventCount}`,
+      `age=${ageMs}ms`,
+    ];
+    if (idleMs !== null) parts.push(`idle=${idleMs}ms`);
+    return parts.join("; ");
   }
 
   const canRun = computed(() => {
@@ -227,9 +247,17 @@ export function useCockpitSession() {
         `${api.value}/sessions/${encodeURIComponent(sessionId.value)}/events`,
       );
       streamFinished = false;
+      streamStartedAt = Date.now();
+      streamEventCount = 0;
+      lastEventAt = 0;
+      source.onopen = () => {
+        pushEvent({ type: "system", content: `event stream opened (${streamDiagnosticsLabel()})` });
+      };
       source.onmessage = (ev) => {
         try {
           const data = JSON.parse(ev.data) as CodexEvent;
+          streamEventCount += 1;
+          lastEventAt = Date.now();
           pushEvent({ ...data, ts: Date.now() });
           if (["final", "error", "cancelled"].includes(data.type)) {
             streamFinished = true;
@@ -243,12 +271,19 @@ export function useCockpitSession() {
           });
         }
       };
-      source.onerror = () => {
+      source.onerror = (err) => {
+        const maybeMsg = (err as any)?.message || (err as any)?.data;
+        const diag = streamDiagnosticsLabel();
+        const detail = maybeMsg ? `${diag}; err=${maybeMsg}` : diag;
+        statusDetail.value = `Event stream error (${detail})`;
         if (streamFinished) {
           closeStream();
           return;
         }
-        pushEvent({ type: "system", content: "event stream error" });
+        pushEvent({
+          type: "system",
+          content: statusDetail.value,
+        });
         closeStream();
         status.value = "idle";
       };
