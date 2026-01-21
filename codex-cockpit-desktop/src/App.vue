@@ -17,6 +17,7 @@
         :ollamaModels="ollamaModels"
         :ollamaStatus="ollamaStatus"
         :ollamaLoading="ollamaLoading"
+        :highlightFetchModels="highlightFetchModels"
         :sessionId="sessionId"
         :canRun="canRun"
         :status="status"
@@ -109,6 +110,7 @@ const {
   ollamaModels,
   ollamaStatus,
   ollamaLoading,
+  highlightFetchModels,
 
   sessionId,
   canRun,

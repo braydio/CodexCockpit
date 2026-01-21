@@ -25,6 +25,7 @@ export function useCockpitSession() {
   const ollamaModels = ref<string[]>([]);
   const ollamaStatus = ref<string>("");
   const ollamaLoading = ref<boolean>(false);
+  const highlightFetchModels = ref<boolean>(false);
 
   const sessionId = ref<string>("");
   const events = ref<CodexEvent[]>([]);
@@ -279,7 +280,11 @@ export function useCockpitSession() {
     events.value = [];
   }
 
-  async function loadOllamaModels() {
+  async function loadOllamaModels(userTriggered = false) {
+    if (userTriggered) {
+      highlightFetchModels.value = false;
+    }
+
     const endpoint = effectiveEndpoint.value;
     if (!endpoint) {
       ollamaStatus.value = "No endpoint configured for Ollama.";
@@ -329,8 +334,18 @@ export function useCockpitSession() {
 
   watch(
     () => endpointMode.value,
-    () => {
+    (mode) => {
+      highlightFetchModels.value = mode === "custom" && !models.value.length;
       void loadModels();
+    },
+  );
+
+  watch(
+    () => models.value.length,
+    (count) => {
+      if (count > 0) {
+        highlightFetchModels.value = false;
+      }
     },
   );
 
@@ -353,6 +368,7 @@ export function useCockpitSession() {
     ollamaModels,
     ollamaStatus,
     ollamaLoading,
+    highlightFetchModels,
 
     sessionId,
     canRun,

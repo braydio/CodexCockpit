@@ -86,7 +86,12 @@
         </div>
 
         <div class="row">
-          <button class="btn" @click="loadOllamaModels" :disabled="ollamaLoading">
+          <button
+            class="btn"
+            :class="{ attention: highlightFetchModels }"
+            @click="loadOllamaModels(true)"
+            :disabled="ollamaLoading"
+          >
             Fetch Ollama Models
           </button>
         </div>
@@ -237,6 +242,7 @@ const props = defineProps<{
   ollamaModels: string[];
   ollamaStatus: string;
   ollamaLoading: boolean;
+  highlightFetchModels: boolean;
   sessionId: string;
   canRun: boolean;
   status: string;
@@ -250,7 +256,7 @@ const emit = defineEmits<{
   (e: "update:customEndpoint", v: string): void;
   (e: "update:selectedSavedEndpoint", v: string): void;
   (e: "loadModels"): void;
-  (e: "loadOllamaModels"): void;
+  (e: "loadOllamaModels", userTriggered?: boolean): void;
   (e: "saveCurrentEndpoint"): void;
   (e: "removeSelectedEndpoint"): void;
   (e: "newSession"): void;
@@ -315,7 +321,9 @@ const endpointInputValue = computed(() =>
 );
 
 function loadModels() { emit("loadModels"); }
-function loadOllamaModels() { emit("loadOllamaModels"); }
+function loadOllamaModels(userTriggered = false) {
+  emit("loadOllamaModels", userTriggered);
+}
 function saveCurrentEndpoint() { emit("saveCurrentEndpoint"); }
 function removeSelectedEndpoint() { emit("removeSelectedEndpoint"); }
 function newSession() { emit("newSession"); }
@@ -478,5 +486,28 @@ function onEndpointFocusOut(event: FocusEvent) {
 
 .dropdownEmpty {
   padding: 6px 8px;
+}
+
+.btn.attention {
+  border-color: rgba(122, 162, 247, 0.7);
+  box-shadow:
+    0 0 0 2px rgba(122, 162, 247, 0.18),
+    0 0 0 8px rgba(122, 162, 247, 0.08);
+  animation: attentionPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes attentionPulse {
+  0% { box-shadow:
+    0 0 0 2px rgba(122, 162, 247, 0.14),
+    0 0 0 8px rgba(122, 162, 247, 0.05);
+  }
+  50% { box-shadow:
+    0 0 0 2px rgba(122, 162, 247, 0.32),
+    0 0 0 10px rgba(122, 162, 247, 0.13);
+  }
+  100% { box-shadow:
+    0 0 0 2px rgba(122, 162, 247, 0.14),
+    0 0 0 8px rgba(122, 162, 247, 0.05);
+  }
 }
 </style>
