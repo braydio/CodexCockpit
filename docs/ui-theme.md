@@ -12,6 +12,9 @@ Supported values are:
 
 - `dark`: Force the dark palette.
 - `light`: Force the light palette.
+- `gruvbox`: Warm, retro terminal palette.
+- `dracula`: Neon purple/teal palette inspired by Dracula.
+- `nord`: Cool arctic palette with muted blues.
 - `system`: Remove the attribute to honor `prefers-color-scheme`.
 
 The top bar provides a theme selector that writes the preference to

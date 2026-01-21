@@ -20,6 +20,10 @@
   --warn: #e0af68;
   --bad: #f7768e;
   --info: #7dcfff;
+  --bg-glow-1: rgba(122, 162, 247, 0.12);
+  --glow-1: rgba(122, 162, 247, 0.2);
+  --glow-2: rgba(125, 207, 255, 0.16);
+  --glow-3: rgba(158, 206, 106, 0.12);
   --shadow: 0 12px 30px rgba(8, 13, 20, 0.35);
   --input-bg: rgba(15, 23, 42, 0.35);
   --radius-lg: 16px;
@@ -58,7 +62,94 @@
   --accent-soft: rgba(29, 78, 216, 0.12);
   --shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
   --input-bg: rgba(248, 250, 252, 0.95);
+  --bg-glow-1: rgba(29, 78, 216, 0.12);
+  --glow-1: rgba(29, 78, 216, 0.16);
+  --glow-2: rgba(56, 189, 248, 0.12);
+  --glow-3: rgba(14, 116, 144, 0.08);
   --glow: 0 0 0 1px rgba(29, 78, 216, 0.18), 0 0 24px rgba(29, 78, 216, 0.12);
+}
+
+:root[data-theme="gruvbox"] {
+  color-scheme: dark;
+  --bg: #1d2021;
+  --bg-2: #282828;
+  --panel: #1f2223;
+  --panel-2: #262626;
+  --panel-3: #32302f;
+  --border: rgba(235, 219, 178, 0.12);
+  --border-strong: rgba(235, 219, 178, 0.24);
+  --text: #ebdbb2;
+  --muted: #a89984;
+  --accent: #d79921;
+  --accent-strong: #fabd2f;
+  --accent-soft: rgba(215, 153, 33, 0.2);
+  --good: #b8bb26;
+  --warn: #fe8019;
+  --bad: #fb4934;
+  --info: #83a598;
+  --bg-glow-1: rgba(215, 153, 33, 0.14);
+  --glow-1: rgba(215, 153, 33, 0.2);
+  --glow-2: rgba(131, 165, 152, 0.18);
+  --glow-3: rgba(184, 187, 38, 0.14);
+  --shadow: 0 14px 32px rgba(15, 12, 10, 0.5);
+  --input-bg: rgba(40, 40, 40, 0.7);
+  --glow: 0 0 0 1px rgba(215, 153, 33, 0.25), 0 0 22px rgba(250, 189, 47, 0.18);
+}
+
+:root[data-theme="dracula"] {
+  color-scheme: dark;
+  --bg: #191a22;
+  --bg-2: #1f202b;
+  --panel: #20222e;
+  --panel-2: #262837;
+  --panel-3: #2b2d3a;
+  --border: rgba(248, 248, 242, 0.12);
+  --border-strong: rgba(248, 248, 242, 0.22);
+  --text: #f8f8f2;
+  --muted: #a1a1b8;
+  --accent: #bd93f9;
+  --accent-strong: #caa6ff;
+  --accent-soft: rgba(189, 147, 249, 0.2);
+  --good: #50fa7b;
+  --warn: #f1fa8c;
+  --bad: #ff5555;
+  --info: #8be9fd;
+  --bg-glow-1: rgba(189, 147, 249, 0.16);
+  --glow-1: rgba(189, 147, 249, 0.2);
+  --glow-2: rgba(139, 233, 253, 0.16);
+  --glow-3: rgba(80, 250, 123, 0.12);
+  --shadow: 0 14px 30px rgba(8, 8, 12, 0.45);
+  --input-bg: rgba(38, 40, 55, 0.8);
+  --glow:
+    0 0 0 1px rgba(189, 147, 249, 0.26), 0 0 24px rgba(189, 147, 249, 0.2);
+}
+
+:root[data-theme="nord"] {
+  color-scheme: dark;
+  --bg: #2e3440;
+  --bg-2: #353c4a;
+  --panel: #2f3542;
+  --panel-2: #3b4252;
+  --panel-3: #434c5e;
+  --border: rgba(216, 222, 233, 0.14);
+  --border-strong: rgba(216, 222, 233, 0.26);
+  --text: #e5e9f0;
+  --muted: #a3b0c3;
+  --accent: #88c0d0;
+  --accent-strong: #8fbcbb;
+  --accent-soft: rgba(136, 192, 208, 0.2);
+  --good: #a3be8c;
+  --warn: #ebcb8b;
+  --bad: #bf616a;
+  --info: #81a1c1;
+  --bg-glow-1: rgba(136, 192, 208, 0.14);
+  --glow-1: rgba(136, 192, 208, 0.2);
+  --glow-2: rgba(129, 161, 193, 0.18);
+  --glow-3: rgba(163, 190, 140, 0.12);
+  --shadow: 0 14px 30px rgba(9, 10, 14, 0.4);
+  --input-bg: rgba(59, 66, 82, 0.7);
+  --glow:
+    0 0 0 1px rgba(136, 192, 208, 0.22), 0 0 22px rgba(136, 192, 208, 0.18);
 }
 
 @media (prefers-color-scheme: light) {
@@ -78,6 +169,10 @@
     --accent-soft: rgba(29, 78, 216, 0.12);
     --shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
     --input-bg: rgba(248, 250, 252, 0.95);
+    --bg-glow-1: rgba(29, 78, 216, 0.12);
+    --glow-1: rgba(29, 78, 216, 0.16);
+    --glow-2: rgba(56, 189, 248, 0.12);
+    --glow-3: rgba(14, 116, 144, 0.08);
     --glow: 0 0 0 1px rgba(29, 78, 216, 0.18), 0 0 24px rgba(29, 78, 216, 0.12);
   }
 }
@@ -97,8 +192,7 @@ body {
   margin: 0;
   font-family: var(--font-sans);
   background:
-    radial-gradient(circle at top, rgba(122, 162, 247, 0.12), transparent 45%),
-    var(--bg);
+    radial-gradient(circle at top, var(--bg-glow-1), transparent 45%), var(--bg);
   color: var(--text);
   line-height: 1.4;
 }
@@ -110,21 +204,9 @@ body::before {
   pointer-events: none;
   opacity: 0;
   background:
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(122, 162, 247, 0.2),
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at 80% 10%,
-      rgba(125, 207, 255, 0.16),
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 40% 80%,
-      rgba(158, 206, 106, 0.12),
-      transparent 55%
-    );
+    radial-gradient(circle at 20% 20%, var(--glow-1), transparent 45%),
+    radial-gradient(circle at 80% 10%, var(--glow-2), transparent 50%),
+    radial-gradient(circle at 40% 80%, var(--glow-3), transparent 55%);
   mix-blend-mode: screen;
   transition: opacity var(--transition);
   z-index: 0;
