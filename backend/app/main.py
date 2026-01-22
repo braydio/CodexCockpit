@@ -2,7 +2,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.logging_config import configure_logging
+
 from app.api import sessions, models, run, workspace
+
+# Ensure logging is configured before the app starts serving.
+configure_logging()
 
 app = FastAPI(
     title="Codex Control Plane",
@@ -22,4 +27,3 @@ app.include_router(models.router, prefix="/models", tags=["models"])
 app.include_router(sessions.router, prefix="/sessions", tags=["sessions"])
 app.include_router(run.router, prefix="/sessions", tags=["run"])
 app.include_router(workspace.router, prefix="/workspace", tags=["workspace"])
-

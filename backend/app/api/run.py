@@ -37,7 +37,9 @@ async def stream_events(session_id: str):
 
     async def event_stream():
         status = "completed"
+        LOGGER.info("Entered event_stream() before yield")
         yield ": keep-alive\n\n"
+        LOGGER.info("Sent first keep-alive")
         try:
             LOGGER.info("Event stream start", extra={"session_id": session_id})
             iterator = session_driver.stream_events(session_id).__aiter__()

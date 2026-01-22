@@ -49,7 +49,14 @@ class OllamaDriver(CodexDriver):
                 }
                 LOGGER.debug(
                     "Ollama payload",
-                    extra={"session_id": session_id, "payload": payload},
+                    extra={
+                        "session_id": session_id,
+                        "payload": {
+                            "model": payload["model"],
+                            "messages_len": len(payload["messages"]),
+                            "stream": payload["stream"],
+                        },
+                    },
                 )
 
                 async with self.client.stream("POST", "/api/chat", json=payload) as resp:
@@ -61,13 +68,28 @@ class OllamaDriver(CodexDriver):
                         },
                     )
                     resp.raise_for_status()
+                    LOGGER.debug(
+                        "Ollama response headers",
+                        extra={
+                            "session_id": session_id,
+                            "headers": dict(resp.headers),
+                        },
+                    )
                     async for line in resp.aiter_lines():
                         if not line:
+                            LOGGER.debug(
+                                "Ollama stream keep-alive",
+                                extra={"session_id": session_id},
+                            )
                             continue
 
                         try:
                             data = json.loads(line)
                         except json.JSONDecodeError:
+                            LOGGER.warning(
+                                "Ollama stream non-JSON line",
+                                extra={"session_id": session_id, "line": line},
+                            )
                             continue
                         if data.get("error"):
                             await queue.put({"type": "error", "content": str(data["error"])})
