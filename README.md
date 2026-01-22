@@ -29,5 +29,5 @@ python -m unittest discover
 ## UI Theme
 
 The desktop UI ships with a terminal-inspired theme system that supports
-dark/light modes and reusable layout utilities. See
+dark/light modes, selectable terminal palettes, and reusable layout utilities. See
 [`docs/ui-theme.md`](docs/ui-theme.md) for the full token and utility catalog.

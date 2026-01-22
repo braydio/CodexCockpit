@@ -20,6 +20,9 @@ Supported values are:
 The top bar provides a theme selector that writes the preference to
 `localStorage` and updates the root attribute.
 
+TODO: Add automated UI coverage for theme switching once a frontend test harness
+is in place.
+
 ## Design Tokens
 
 The theme provides CSS custom properties for layout, typography, spacing, and
@@ -27,13 +30,14 @@ status colors. The most commonly used tokens are:
 
 - `--bg`, `--panel`, `--panel-2`, `--panel-3` for layered surfaces.
 - `--text`, `--muted` for primary and secondary text.
+- `--font-sans`, `--font-mono` for theme-specific typography stacks.
 - `--accent`, `--accent-soft`, `--good`, `--warn`, `--bad`, `--info` for status
   messaging.
 - `--radius-*`, `--space-*`, `--shadow` for shape and rhythm.
 
-Dark mode also applies a subtle animated glow overlay (`body::before`) to add
-terminal-style movement. The animation is disabled automatically when
-`prefers-reduced-motion` is set.
+Dark mode also applies a subtle animated glow overlay (`body::before`) and
+scanline texture (`body::after`) to add terminal-style movement. Animations are
+disabled automatically when `prefers-reduced-motion` is set.
 
 ## Utility Classes
 
