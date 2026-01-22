@@ -1,0 +1,1 @@
+Review the current project structure. Determine a new feature to implement. Write it to a markdown file at ./NEW_FEATURE.md
