@@ -17,6 +17,13 @@ binary (for example Ollama). Configuration lives in
 `backend/app/codex/models.py`, and documentation is available in
 [`docs/model-adapters.md`](docs/model-adapters.md).
 
+## Orchestration Lifecycle
+
+The orchestration lifecycle document explains how sessions move from task intake
+through metrics evaluation and definition-of-done checks, including example
+schemas and event payloads for the driver interface. See
+[`docs/orchestration.md`](docs/orchestration.md).
+
 ## Tests
 
 Backend unit tests can be run with:

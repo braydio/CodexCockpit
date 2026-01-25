@@ -1,5 +1,11 @@
 # Documentation Index
 
+## Orchestration lifecycle
+
+[`docs/orchestration.md`](orchestration.md) documents the session orchestration
+lifecycle, including metrics evaluation and definition-of-done criteria, so
+operators can understand how runs are coordinated and completed.
+
 ## Model metadata
 
 The authoritative source of model metadata is the `MODEL_REGISTRY` defined in
