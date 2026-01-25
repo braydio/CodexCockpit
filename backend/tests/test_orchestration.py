@@ -51,6 +51,25 @@ class MetricsAccumulatorTests(unittest.TestCase):
         self.assertEqual(summary["error_count"], 1)
         self.assertCountEqual(summary["files_touched"], ["a.py", "b.py"])
 
+    def test_records_paths_from_multiple_meta_fields(self) -> None:
+        """Ensure file paths are gathered across supported metadata keys."""
+        accumulator = MetricsAccumulator()
+        accumulator.record_event(
+            {"type": "tool", "content": "tool", "meta": {"paths": ["a.py", "b.py"]}}
+        )
+        accumulator.record_event(
+            {"type": "diff", "content": "diff", "meta": {"path": "c.py"}}
+        )
+        accumulator.record_event(
+            {"type": "tool", "content": "tool", "meta": {"files": ["d.py", 123]}}
+        )
+
+        summary = accumulator.summarize()
+
+        self.assertCountEqual(
+            summary["files_touched"], ["a.py", "b.py", "c.py", "d.py"]
+        )
+
 
 class OrchestrationManagerTests(unittest.IsolatedAsyncioTestCase):
     """Unit tests for orchestration planning and streaming."""
