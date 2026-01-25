@@ -13,9 +13,7 @@ Implements OpenAI, Ollama, LM Studio, and Offline cache adapters.
 import subprocess
 import requests
 import os
-import json
 import hashlib
-from typing import Optional
 
 
 class ModelAdapter:
