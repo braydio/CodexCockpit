@@ -108,5 +108,39 @@ class OrchestrationApiTests(unittest.TestCase):
         self.assertIn("data:", content)
 
 
+class OrchestrationStatusTests(unittest.TestCase):
+    """Tests for orchestration session completion tracking."""
+
+    def test_update_session_status_marks_completed(self) -> None:
+        """Ensure non-error events mark sessions as completed."""
+        statuses = {}
+
+        orchestrations._update_session_status(
+            statuses,
+            session_id="session-1",
+            event_type="final",
+        )
+
+        self.assertEqual(statuses["session-1"], "completed")
+
+    def test_update_session_status_keeps_terminal_errors(self) -> None:
+        """Ensure error or cancel status is not overwritten."""
+        statuses = {"session-1": "completed"}
+
+        orchestrations._update_session_status(
+            statuses,
+            session_id="session-1",
+            event_type="error",
+        )
+
+        orchestrations._update_session_status(
+            statuses,
+            session_id="session-1",
+            event_type="final",
+        )
+
+        self.assertEqual(statuses["session-1"], "error")
+
+
 if __name__ == "__main__":
     unittest.main()
