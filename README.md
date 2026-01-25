@@ -24,6 +24,10 @@ through metrics evaluation and definition-of-done checks, including example
 schemas and event payloads for the driver interface. See
 [`docs/orchestration.md`](docs/orchestration.md).
 
+Orchestration planning, metrics accumulation, and event aggregation utilities
+are implemented in `backend/app/codex/orchestration.py`,
+`backend/app/codex/orchestration_types.py`, and `backend/app/codex/metrics.py`.
+
 ## Tests
 
 Backend unit tests can be run with:

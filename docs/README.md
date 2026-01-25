@@ -4,7 +4,9 @@
 
 [`docs/orchestration.md`](orchestration.md) documents the session orchestration
 lifecycle, including metrics evaluation and definition-of-done criteria, so
-operators can understand how runs are coordinated and completed.
+operators can understand how runs are coordinated and completed. The orchestration
+module implementations live under `backend/app/codex/` for planning, metrics, and
+event aggregation.
 
 ## Model metadata
 

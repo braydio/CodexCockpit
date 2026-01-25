@@ -4,6 +4,19 @@ CodexCockpit orchestration treats every run as a session-scoped workflow driven
 by structured events. The driver interface owns lifecycle coordination and keeps
 execution model-neutral while the API and GUI consume explicit event payloads.
 
+## Orchestration Modules
+
+Orchestration support lives in the Codex control plane under
+`backend/app/codex/`. The module set is intentionally thin so orchestration can
+coordinate plans and metrics without bypassing the driver interface.
+
+- `orchestration_types.py` defines the task specification, definition-of-done,
+  and orchestration plan data structures.
+- `orchestration.py` owns the `OrchestrationManager` that assembles plans,
+  spawns sessions through the existing session registry, and aggregates events.
+- `metrics.py` accumulates event counts, touched files, and error totals for
+  definition-of-done evaluation and reporting.
+
 ## Lifecycle Stages
 
 1. **Session initialization**
