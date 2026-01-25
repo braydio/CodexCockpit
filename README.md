@@ -27,6 +27,9 @@ schemas and event payloads for the driver interface. See
 Orchestration planning, metrics accumulation, and event aggregation utilities
 are implemented in `backend/app/codex/orchestration.py`,
 `backend/app/codex/orchestration_types.py`, and `backend/app/codex/metrics.py`.
+The orchestration control-plane endpoints are available under
+`backend/app/api/orchestrations.py` for plan creation, run starts, and aggregated
+event streaming.
 
 ## Tests
 

@@ -17,6 +17,30 @@ coordinate plans and metrics without bypassing the driver interface.
 - `metrics.py` accumulates event counts, touched files, and error totals for
   definition-of-done evaluation and reporting.
 
+## Orchestration API Endpoints
+
+The control plane exposes orchestration endpoints for planning, starting runs,
+and streaming aggregated events. These routes live in
+`backend/app/api/orchestrations.py` and mirror the session streaming behavior
+used in `backend/app/api/run.py`.
+
+### Create a plan
+
+`POST /orchestrations/plan` accepts a task specification payload and returns a
+serialized orchestration plan.
+
+### Start a run
+
+`POST /orchestrations/run` accepts either a `plan_id` or a full task
+specification, along with optional session overrides. The response returns the
+run identifier and spawned session IDs.
+
+### Stream aggregated events
+
+`GET /orchestrations/{run_id}/events` streams server-sent events (SSE) that
+merge session event streams. Clients should expect keep-alive comments and
+`data:` payloads that wrap individual events.
+
 ## Lifecycle Stages
 
 1. **Session initialization**

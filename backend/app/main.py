@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.logging_config import configure_logging
 
-from app.api import sessions, models, run, workspace
+from app.api import sessions, models, run, workspace, orchestrations
 
 # Ensure logging is configured before the app starts serving.
 configure_logging()
@@ -26,4 +26,7 @@ app.add_middleware(
 app.include_router(models.router, prefix="/models", tags=["models"])
 app.include_router(sessions.router, prefix="/sessions", tags=["sessions"])
 app.include_router(run.router, prefix="/sessions", tags=["run"])
+app.include_router(
+    orchestrations.router, prefix="/orchestrations", tags=["orchestrations"]
+)
 app.include_router(workspace.router, prefix="/workspace", tags=["workspace"])

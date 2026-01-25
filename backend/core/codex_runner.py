@@ -7,7 +7,7 @@ Integrates ContextAssembler and ModelAdapters into a single execution pipeline.
 """
 
 import json
-from typing import Dict, Optional
+from typing import Dict
 from backend.core.context_assembler import ContextAssembler
 from backend.utils.model_adapters import (
     OpenAIAdapter,
