@@ -3,32 +3,39 @@
     <!-- SESSION PANEL -->
     <div class="section card panel">
       <div class="panel-header">
-        <div>
-          <div class="sectionTitle">1. Session</div>
-          <div class="small muted">
-            Configure the model, workspace, and goal before creating a session.
+        <div class="sectionTitleRow">
+          <div>
+            <div class="sectionTitle">1. Session setup</div>
+            <div class="panelSubtext">
+              Choose endpoint, fetch models, then set the goal before creating a session.
+            </div>
           </div>
+          <div class="pillLabel">required</div>
         </div>
       </div>
 
-      
-
-        <div class="field">
-          <div class="label">Workspace</div>
+      <div class="panel-body columnGap">
+        <div class="field cluster">
+          <div class="labelRow">
+            <div class="label">Workspace</div>
+            <div class="hint">Interpreted by backend</div>
+          </div>
           <input class="input mono" v-model="workspace" placeholder="." />
-          <div class="small muted">Path is interpreted by the backend.</div>
         </div>
 
-        <div class="field">
-          <div class="label">Ollama Endpoint</div>
-          <div class="row">
-            <label class="radio">
+        <div class="field cluster">
+          <div class="labelRow">
+            <div class="label">Endpoint</div>
+            <div class="hint">Pick provider, then fetch models</div>
+          </div>
+          <div class="row tight">
+            <label class="radio pillRadio">
               <input type="radio" value="default" v-model="endpointMode" />
-              <span>Default</span>
+              <span>Default (OpenAI)</span>
             </label>
-            <label class="radio">
+            <label class="radio pillRadio">
               <input type="radio" value="custom" v-model="endpointMode" />
-              <span>Custom</span>
+              <span>Custom (Ollama)</span>
             </label>
           </div>
           <div class="endpointPicker" ref="endpointPicker" @focusout="onEndpointFocusOut">
@@ -46,8 +53,7 @@
               :disabled="endpointMode === 'default' || !savedEndpoints.length"
               @click="toggleEndpointDropdown"
             >
-            ↓
-
+              ↓
             </button>
             <div
               v-if="endpointMode === 'custom' && endpointDropdownOpen"
@@ -67,58 +73,76 @@
               </div>
             </div>
           </div>
-          <div class="small mono muted">
-            default: {{ defaultEndpoint || "—" }}
+          <div class="inlineActions" v-if="endpointMode === 'custom' && customEndpoint">
+            <div class="hint mono">using: {{ effectiveEndpoint || "—" }}</div>
+            <div class="actionButtons">
+              <button
+                v-if="!isCustomSaved"
+                class="btn ghost"
+                type="button"
+                @click="saveCurrentEndpoint"
+              >
+                Save endpoint
+              </button>
+              <button
+                v-else
+                class="btn ghost"
+                type="button"
+                @click="removeSelectedEndpoint"
+              >
+                Remove saved
+              </button>
+            </div>
           </div>
-          <div class="small muted" v-if="effectiveEndpoint">
-            using: {{ effectiveEndpoint }}
+          <div class="inlineActions" v-else>
+            <div class="hint mono">default: {{ defaultEndpoint || "—" }}</div>
           </div>
+
           <div class="row">
-            <button class="btn" @click="saveCurrentEndpoint">Save Current</button>
             <button
-              class="btn"
-              @click="removeSelectedEndpoint"
-              :disabled="!selectedSavedEndpoint"
+              v-if="endpointMode === 'custom'"
+              class="btn wide"
+              :class="{ attention: highlightFetchModels }"
+              @click="loadOllamaModels(true)"
+              :disabled="ollamaLoading"
             >
-              Remove
+              Fetch Ollama models
+            </button>
+            <div v-else class="hint">OpenAI models are prefetched for the default endpoint.</div>
+          </div>
+
+          <div class="small mono muted" v-if="ollamaStatus">
+            {{ ollamaStatus }}
+          </div>
+          <div class="codeblock mono" v-if="ollamaModels.length">
+            {{ ollamaModels.join("\n") }}
+          </div>
+        </div>
+
+        <div class="field cluster">
+          <div class="labelRow">
+            <div class="label">Model</div>
+            <button class="btn ghost smallBtn" @click="loadModels" :disabled="busyModels">
+              Refresh models
             </button>
           </div>
-        </div>
-
-        <div class="row">
-          <button
-            class="btn"
-            :class="{ attention: highlightFetchModels }"
-            @click="loadOllamaModels(true)"
-            :disabled="ollamaLoading"
-          >
-            Fetch Ollama Models
-          </button>
-        </div>
-
-        <div class="small mono muted" v-if="ollamaStatus">
-          {{ ollamaStatus }}
-        </div>
-        <div class="codeblock mono" v-if="ollamaModels.length">
-          {{ ollamaModels.join("\n") }}
-        </div>
-
-        <div class="panel-body">
-          <div class="field">
-            <div class="label">Model</div>
+          <div class="modelCard">
             <select class="select" v-model="selectedModel" :disabled="busyModels">
               <option v-for="m in models" :key="m.name" :value="m.name">
                 {{ m.name }}{{ m.type ? ` (${m.type})` : "" }}
               </option>
             </select>
-          <div class="small mono muted" v-if="selectedModelInfo">
-            ctx={{ selectedModelInfo.context ?? "?" }} • tools={{
-              selectedModelInfo.tools ?? false
-            }}
+            <div class="modelMeta" v-if="selectedModelInfo">
+              <span class="pillMeta">ctx {{ selectedModelInfo.context ?? "?" }}</span>
+              <span class="pillMeta">tools {{ selectedModelInfo.tools ?? false }}</span>
+              <span class="pillMeta" v-if="selectedModelInfo.endpoint">
+                endpoint {{ selectedModelInfo.endpoint }}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div class="field">
+        <div class="field cluster">
           <div class="label">Goal</div>
           <textarea
             class="textarea"
@@ -128,11 +152,8 @@
         </div>
 
         <div class="row align-center">
-          <button class="btn" @click="loadModels" :disabled="busyModels">
-            Reload Models
-          </button>
-          <button class="btn primary" @click="newSession" :disabled="busyCreate">
-            Create Session
+          <button class="btn primary wide" @click="newSession" :disabled="busyCreate">
+            Create session
           </button>
         </div>
 
@@ -148,26 +169,29 @@
     <!-- EXECUTION PANEL -->
     <div class="section card panel">
       <div class="panel-header">
-        <div>
-          <div class="sectionTitle">2. Execution</div>
-          <div class="small muted">
-            Run the active session, stop the local stream, or clear console output.
+        <div class="sectionTitleRow">
+          <div>
+            <div class="sectionTitle">2. Execution</div>
+            <div class="panelSubtext">
+              Run the active session, stop the local stream, or clear console output.
+            </div>
           </div>
+          <div class="pillLabel muted">runtime</div>
         </div>
       </div>
 
       <div class="panel-body">
         <div class="row align-center">
           <button
-            class="btn"
+            class="btn primary wide"
             :class="{ primary: hasSession }"
             @click="run"
             :disabled="!canRun || busyRun"
           >
             {{ hasSession ? "Run" : "Run (create session first)" }}
           </button>
-          <button class="btn danger" @click="stopLocal" :disabled="!busyRun">
-            Stop (Local)
+          <button class="btn ghost danger wide" @click="stopLocal" :disabled="!busyRun">
+            Stop stream (local)
           </button>
         </div>
 
@@ -175,28 +199,21 @@
           Create a session to enable execution.
         </div>
         <div class="small muted runHint" v-else>
-          Execution streams to the console below.
+          Execution streams to the console below; Stop only closes the local stream.
         </div>
 
         <div class="secondaryActions">
           <div class="small muted">Secondary actions</div>
           <div class="row align-center">
-            <button
-              class="btn danger secondary"
-              @click="stopLocal"
-              :disabled="!busyRun"
-            >
-              Stop (Local)
-            </button>
-            <button class="btn secondary" @click="clearEvents">
-              Clear Console
+            <button class="btn secondary wide" @click="clearEvents">
+              Clear console
             </button>
           </div>
         </div>
 
         <div class="small muted">
-          Stop(Local) only closes the stream. Backend stop is available at
-          <code>POST /sessions/{id}/stop</code>.
+          Stop stream only closes the local connection. Backend stop is available at
+          <code>POST /sessions/{id}/stop</code> if needed.
         </div>
       </div>
     </div>
@@ -204,20 +221,44 @@
     <!-- ABOUT PANEL -->
     <div class="section card panel">
       <div class="panel-header">
-        <div>
-          <div class="sectionTitle">About / Roadmap</div>
-          <div class="small muted">Upcoming focus areas for the cockpit.</div>
+        <div class="sectionTitleRow">
+          <div>
+            <div class="sectionTitle">About / Roadmap</div>
+            <div class="panelSubtext">High-level plan with details on demand.</div>
+          </div>
+          <div class="pillLabel">roadmap</div>
         </div>
       </div>
       <div class="panel-body">
-        <div class="small muted">
-          Next steps on the roadmap:
-          <div class="mono" style="margin-top: 8px">
-            B) UI layout ✅<br />
-            C) Diff + workspace viewer<br />
-            D) Model routing ✅<br />
-            E) Tauri desktop ✅
-          </div>
+        <div class="roadmapList">
+          <details open>
+            <summary>Stabilize core cockpit experience</summary>
+            <div class="small muted roadmapDetails">
+              Solidify session flow, endpoint handling, and error visibility. Improve console UX and
+              add resilient reconnect behaviors.
+            </div>
+          </details>
+          <details>
+            <summary>Workspace & diffing</summary>
+            <div class="small muted roadmapDetails">
+              Add richer workspace tree, inline file diffs, and quick actions (open/edit). Aim for a
+              minimal diff viewer and comment anchors.
+            </div>
+          </details>
+          <details>
+            <summary>Model routing & presets</summary>
+            <div class="small muted roadmapDetails">
+              Support multiple providers with presets, show capability badges, and allow saving
+              routing strategies per project.
+            </div>
+          </details>
+          <details>
+            <summary>Desktop polish</summary>
+            <div class="small muted roadmapDetails">
+              Tighten Tauri shell integration, add native notifications, and streamline packaging for
+              macOS/Windows/Linux.
+            </div>
+          </details>
         </div>
       </div>
     </div>
@@ -296,6 +337,10 @@ const selectedSavedEndpoint = computed({
 });
 
 const defaultEndpoint = computed(() => props.defaultEndpoint);
+const isCustomSaved = computed(() => {
+  if (!customEndpoint.value) return false;
+  return props.savedEndpoints.includes(customEndpoint.value);
+});
 
 const endpointDropdownOpen = ref(false);
 const endpointPicker = ref<HTMLElement | null>(null);
@@ -381,11 +426,19 @@ function onEndpointFocusOut(event: FocusEvent) {
   border-radius: 14px;
   padding: 12px;
   margin-bottom: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
 }
 
 .sectionTitle {
   font-weight: 700;
   margin-bottom: 10px;
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .sectionTitle.subsection {
@@ -436,6 +489,72 @@ function onEndpointFocusOut(event: FocusEvent) {
   opacity: 0.9;
 }
 
+.panelSubtext {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.columnGap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pillLabel {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.row.tight {
+  margin-top: 6px;
+  gap: 8px;
+}
+
+.btn.wide {
+  width: 100%;
+}
+
+.btn.ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+
+.btn.ghost:hover:not(:disabled) {
+  border-color: rgba(122, 162, 247, 0.45);
+  color: var(--text);
+}
+
+.btn.smallBtn {
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.section.card {
+  margin-bottom: 12px;
+}
+
+.stepDivider {
+  margin: 16px 0 12px;
+}
+
 .endpointPicker {
   position: relative;
   display: flex;
@@ -445,6 +564,7 @@ function onEndpointFocusOut(event: FocusEvent) {
 
 .endpointPicker .input {
   flex: 1;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .iconButton {
@@ -488,6 +608,63 @@ function onEndpointFocusOut(event: FocusEvent) {
   padding: 6px 8px;
 }
 
+.inlineActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.cluster {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.00));
+}
+
+.pillRadio {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+}
+
+.pillRadio input {
+  accent-color: var(--accent);
+}
+
+.modelCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.modelMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pillMeta {
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(122, 162, 247, 0.12);
+  border: 1px solid rgba(122, 162, 247, 0.32);
+  color: var(--text);
+  font-size: 11px;
+}
+
 .btn.attention {
   border-color: rgba(122, 162, 247, 0.7);
   box-shadow:
@@ -509,5 +686,24 @@ function onEndpointFocusOut(event: FocusEvent) {
     0 0 0 2px rgba(122, 162, 247, 0.14),
     0 0 0 8px rgba(122, 162, 247, 0.05);
   }
+}
+
+.roadmapList details {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.roadmapList summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.roadmapDetails {
+  margin-top: 6px;
+  line-height: 1.5;
 }
 </style>
