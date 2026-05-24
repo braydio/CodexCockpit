@@ -1,13 +1,14 @@
 # Documentation Index
 
-## Orchestration lifecycle
+## Control Plane
 
-[`docs/orchestration.md`](orchestration.md) documents the session orchestration
-lifecycle, including metrics evaluation and definition-of-done criteria, so
-operators can understand how runs are coordinated and completed. The orchestration
-module implementations live under `backend/app/codex/` for planning, metrics, and
-event aggregation. The orchestration API routes are defined in
-`backend/app/api/orchestrations.py`.
+- `docs/context-assembly.md` explains how the backend assembles bounded prompt
+  context for Codex sessions.
+- `docs/orchestration.md` covers orchestration planning, session aggregation,
+  and definition-of-done metrics.
+- `docs/FEATURE_FLOW.md` maps the runtime flow across session and orchestration
+  endpoints.
+- `docs/FRAMEWORKS.md` documents the current status of framework support.
 
 ## Model metadata
 
@@ -19,4 +20,9 @@ capabilities consistent.
 ## UI styling
 
 The desktop UI theme tokens and utility classes are documented in
-[`docs/ui-theme.md`](ui-theme.md).
+`docs/ui-theme.md`.
+
+## Roadmap
+
+- `docs/ROADMAP.md` tracks the development plan for orchestration and future
+  features.
